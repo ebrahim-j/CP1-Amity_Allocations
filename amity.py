@@ -1,4 +1,5 @@
 """ Functions consisted in class Amity """
+from person import Person
 
 class Amity(object):
     """ class Amity """
@@ -9,8 +10,26 @@ class Amity(object):
         """ Reallocates a person with person_identifier to new_room_name """
         pass
 
-    def load_people(self):
+    def load_people(self): #, fileobj
         """ Adds people to rooms from a txt file """
+        #try except this to see if file exists
+        # fileobj = open("filename.txt", "r")
+
+        # if not fileobj.closed:
+        #     print("file is already opened")
+        # else:
+        #     fileobj.read()
+        #     for line in fileobj:
+        #         read1line = line.split()
+        #         if len(read1line) == 3:
+        #             name = read1line[0]
+        #             type_person = read1line[1]
+        #             wants_accomodation = read1line[2]
+        #             Person.add_person(name, type_person, wants_accomodation)
+        #         else:
+        #             name = read1line[0]
+        #             type_person = read1line[1]
+        #             Person.add_person(name, type_person)
         pass
 
     def print_allocations(self):

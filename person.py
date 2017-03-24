@@ -10,9 +10,8 @@ class Person(object):
         self.name = name
 
 
-    def add_person(self, name, type_person, wants_accommodation):
-        pass
-
+    def add_person(self, name, type_person, wants_accommodation='N'):
+        return name + type_person + wants_accommodation
 
 class Fellow(Person):
     def __init__(self):

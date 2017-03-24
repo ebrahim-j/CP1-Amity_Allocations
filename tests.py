@@ -101,20 +101,58 @@ class TestReallocatePerson(unittest.TestCase):
 
 class TestLoadPeople(unittest.TestCase):
 
+    def setUp(self):
+        self.amity = Amity()
+
+    def test_if_file_is_not_already_open(self):
+        self.assertEqual(self.amity.load_people(), "file is already opened", msg="File not closed being reopened") #to correct for with parameter
+
+    def test_if_file_does_not_exists(self):
+        self.assertEqual(self.amity.load_people(), "file does not exist")
+
     def test_whether_input_is_txt_file(self):
         pass
 
     def test_if_input_file_is_not_blank(self):
-        pass
+        self.assertEqual(self.amity.load_people(), "File may be empty or in incorrect format")
 
     def test_if_input_file_in_correct_format(self):
-        pass
+        self.assertEqual(self.amity.load_people(), "File may be empty or in incorrect format")
 
-    def test_if_people_added_seccessfully(self):
-        pass
+    # def test_if_people_added_successfully(self):
+    #     pass
 
 
 class TestPrintAllocations(unittest.TestCase):
+
+        #     def write_lamb(outfile):
+        #     outfile.write("Mary had a little lamb.\n")
+
+
+        # if __name__ == '__main__':
+        #     with open(sys.argv[1], 'w') as outfile:
+        #         write_lamb(outfile)
+
+
+
+        # ##File test_lamb.py
+        # import unittest
+        # from io import StringIO
+
+        # import lamb
+
+
+        # class LambTests(unittest.TestCase):
+        #     def test_lamb_output(self):
+        #         outfile = StringIO()
+        #         # NOTE: Alternatively, for Python 2.6+, you can use
+        #         # tempfile.SpooledTemporaryFile, e.g.,
+        #         #outfile = tempfile.SpooledTemporaryFile(10 ** 9)
+        #         lamb.write_lamb(outfile)
+        #         outfile.seek(0)
+        #         content = outfile.read()
+        #         self.assertEqual(content, "Mary had a little lamb.\n")
+
 
     pass
 
