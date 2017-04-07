@@ -2,25 +2,29 @@
 class Room(object):
     """ class Room """
 
-    def __init__(self, name='', max_capacity=0, current_occupants=[]): 
-        self.name = name
-        self.max_capacity = max_capacity
-        self.current_occupants = current_occupants
+    def __init__(self, room_name): 
+        self.room_name = room_name
 
-    def create_room(self, prefix, name):
 
-        #instantiates a living space or office based on prefix
-        return ""
-
+    def room_has_space(self, obj_ref):
+        if self.obj_ref.max_capacity > len(self.obj_ref.current_occupants):
+            return True
+        else:
+            return False
 
 class Office(Room):
     """ class Office inherits from class Room """
-    def __init__(self):
-        pass
+    def __init__(self, room_name):
+        super(Office, self).__init__(room_name)
+        self.current_occupants = []
+        self.max_capacity = 6
 
 
 
 class LivingSpace(Room):
     """ class LivingSpace inherits from class Room """
-    def __init__(self):
-        pass
+    def __init__(self, room_name):
+        super(LivingSpace, self).__init__(room_name)
+        self.current_occupants = []
+        self.max_capacity = 4
+        

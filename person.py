@@ -4,21 +4,19 @@ class Person(object):
     """ class Person """
 
 
-    def __init__(self, identifier=2, name=""): #, name, wants_accommodation="N"
-        # self.wants_accommodation = wants_accommodation
-        self.identifier = identifier
-        self.name = name
+    def __init__(self, the_id, the_name):
+        self.the_id = the_id
+        self.the_name = the_name
 
-
-    def add_person(self, name, type_person, wants_accommodation='N'):
-        return name + type_person + wants_accommodation
-
+    
 class Fellow(Person):
-    def __init__(self):
-        pass
-
+    def __init__(self, the_id, the_name):
+        super(Fellow, self).__init__(the_id, the_name)
+        self.allocated = False
+        self.accommodated = False
 
 
 class Staff(Person):
-    def __init__(self):
-        pass
+    def __init__(self, the_id, the_name):
+        super(Staff, self).__init__(the_id, the_name)
+        self.allocated = False

@@ -1,9 +1,10 @@
 """ Tests for apps """
-
+import os
 import unittest
 from amity import Amity
 from person import Person, Staff, Fellow
 from rooms import Room, Office, LivingSpace
+
 
 offices = ["asgard", "mtaani"]
 livingspaces = ["statehouse"]
@@ -13,76 +14,61 @@ fellows = ["wonderwoman", "hulk"]
 staff = ["strange"]
 
 
-class TestInheritance(unittest.TestCase):
-    """ test-cases for the Amity program """
-
-
-    def test_fellow_inheritance(self):
-        self.assertTrue(issubclass(Fellow, Person), msg="Fellow does NOT Inherit from Person")
-
-    def test_staff_inheritance(self):
-        self.assertTrue(issubclass(Staff, Person), msg="Staff does NOT Inherit from Person")
-
-    def test_office_inheritance(self):
-        self.assertTrue(issubclass(Office, Room), msg="Office does NOT Inherit from Room")
-
-    def test_livingspace_inheritance(self):
-        self.assertTrue(issubclass(LivingSpace, Room), msg="LivinSpace does NOT Inherit from Room")
-
 class TestCreateRoom(unittest.TestCase):
 
     def setUp(self):
-        self.room1 = Room()
+        self.amity = Amity()
+
     #test_if_can_add_more than one room
     #test_if_duplicate_entries_not_added
 
     def test_whether_office_already_exists(self):
-        create1 = self.room1.create_room("O", "asgard")
+        create1 = self.amity.create_room("O", "asgard")
         self.assertEqual("Room already exists", create1, msg="Duplicate room is being created")
 
     def test_if_office_created(self):
-        self.room1.create_room("O", "cave")
+        self.amity.create_room("O", "cave")
         self.assertIn("cave", offices, msg="Office CANNOT be created successfully")
 
     def test_whether_livingspace_already_exists(self):
-        create1 = self.room1.create_room("L", "statehouse")
+        create1 = self.amity.create_room("L", "statehouse")
         self.assertEqual("Room already exists", create1,  msg="Duplicate room is being created")
 
     def test_if_livingspace_created(self):
-        self.room1.create_room("L", "cave")
+        self.amity.create_room("L", "cave")
         self.assertIn("cave", livingspaces, msg="Living Space CANNOT be created successfully")
 
 class TestAddPerson(unittest.TestCase):
 
     def setUp(self):
-        self.person = Person()
+        self.amity = Amity()
 
     def test_whether_fellow_already_exists(self):
-        create = self.person.add_person("WONDERWOMAN", "FELLOW", "Y")
+        create = self.amity.add_person("WONDERWOMAN", "FELLOW", "Y")
         self.assertEqual("Person already exists", create, msg="Duplicate person being created")
 
     #test_if_person_identifier_exists
     ## what if 2 people have the same name?
 
     def test_if_fellow_added(self):
-        self.person.add_person("WOLVERINE", "FELLOW", "Y")
-        self.assertIn("wolverine", fellows, msg="Fellow CANNOT be added successfully")
+        count = len(self.amity.fellows)
+        create = self.amity.add_person("WOLVERINE", "FELLOW", "Y")
+        self.assertEqual(len(self.amity.fellows), count + 1, msg="Fellow CANNOT be added successfully")
 
 
     def test_whether_staff_already_exists(self):
-        create = self.person.add_person("STRANGE", "STAFF", "N")
+        create = self.amity.add_person("STRANGE", "STAFF", "N")
         self.assertEqual("Person already exists", create, msg="Duplicate person being created")
 
     def test_if_staff_added(self):
-        self.person.add_person("CYBORG", "STAFF", "N")
-        self.assertIn("cyborg", fellows, msg="Staff CANNOT be added successfully")
+        count = len(self.amity.staff)
+        self.amity.add_person("CYBORG", "STAFF", "N")
+        self.assertEqual(len(self.amity.staff), count + 1, msg="Staff CANNOT be added successfully") 
 
 class TestReallocatePerson(unittest.TestCase):
 
     def setUp(self):
         self.amity = Amity()
-        self.person = Person()
-        self.room = Room()
  #test if staff can't be reallocated to a livingspace
 
 
@@ -104,6 +90,9 @@ class TestLoadPeople(unittest.TestCase):
     def setUp(self):
         self.amity = Amity()
 
+    def test_file_created(self):
+        self.assertTrue(os.path.exists("file.txt")) #change filename
+
     def test_if_file_is_not_already_open(self):
         self.assertEqual(self.amity.load_people(), "file is already opened", msg="File not closed being reopened") #to correct for with parameter
 
@@ -121,6 +110,7 @@ class TestLoadPeople(unittest.TestCase):
 
     # def test_if_people_added_successfully(self):
     #     pass
+    #Test if the number of people in the file are the same number by which the dict/db count has increased
 
 
 class TestPrintAllocations(unittest.TestCase):
@@ -153,13 +143,23 @@ class TestPrintAllocations(unittest.TestCase):
         #         content = outfile.read()
         #         self.assertEqual(content, "Mary had a little lamb.\n")
 
+    def setUp(self):
+        #query through db to collect all allocated people
+        pass
 
-    pass
+    def test_file_created(self):
+        self.assertTrue(os.path.exists("file.txt")) #change filename
+
 
 
 class TestPrintUnallocated(unittest.TestCase):
 
-    pass
+    def setUp(self):
+        #query through db to collect all unallocated people
+        pass
+
+    def test_file_created(self):
+        self.assertTrue(os.path.exists("file.txt")) #change filename
 
 class TestPrintRoom(unittest.TestCase):
 
@@ -178,13 +178,21 @@ class TestPrintRoom(unittest.TestCase):
 
 
 class TestSaveState(unittest.TestCase):
+    def setUp(self):
+        amity = Amity()
+        amity.save_state() #refactor to accept an optional argument for filename
 
-    pass
+    def test_file_created(self):
+        self.assertTrue(os.path.exists("file.db")) #change filename
+
 
 class TestLoadState(unittest.TestCase):
+    def setUp(self):
+        amity = Amity()
+        amity.load_people() #refactor to accept an optional argument for filename
 
-    pass
-
+    def test_file_created(self):
+        self.assertTrue(os.path.exists("file.db")) #change filename
 
 
 
