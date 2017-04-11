@@ -1,7 +1,7 @@
 """ Tests for apps """
 import os
 import unittest
-from amity import Amity
+from amity2 import Amity
 from person import Person, Staff, Fellow
 from rooms import Room, Office, LivingSpace
 
@@ -27,16 +27,15 @@ class TestCreateRoom(unittest.TestCase):
         self.assertEqual("Room already exists", create1, msg="Duplicate room is being created")
 
     def test_if_office_created(self):
-        self.amity.create_room("O", "cave")
-        self.assertIn("cave", offices, msg="Office CANNOT be created successfully")
+        # print (self.amity.offices[0].current_occupants)
+        self.assertEqual(self.amity.create_room("O", "cave"), "We have successfully created a new office called: CAVE", msg="Office CANNOT be created successfully")
 
     def test_whether_livingspace_already_exists(self):
         create1 = self.amity.create_room("L", "statehouse")
         self.assertEqual("Room already exists", create1,  msg="Duplicate room is being created")
 
     def test_if_livingspace_created(self):
-        self.amity.create_room("L", "cave")
-        self.assertIn("cave", livingspaces, msg="Living Space CANNOT be created successfully")
+        self.assertEqual(self.amity.create_room("L", "cave"), "New living quarters ( CAVE ) successfully created!", msg="Office CANNOT be created successfully")
 
 class TestAddPerson(unittest.TestCase):
 
@@ -51,6 +50,8 @@ class TestAddPerson(unittest.TestCase):
     ## what if 2 people have the same name?
 
     def test_if_fellow_added(self):
+        room = self.amity.create_room("o", "oculus")
+        ls = self.amity.create_room("l", "london")
         count = len(self.amity.fellows)
         create = self.amity.add_person("WOLVERINE", "FELLOW", "Y")
         self.assertEqual(len(self.amity.fellows), count + 1, msg="Fellow CANNOT be added successfully")
@@ -61,9 +62,16 @@ class TestAddPerson(unittest.TestCase):
         self.assertEqual("Person already exists", create, msg="Duplicate person being created")
 
     def test_if_staff_added(self):
+        room = self.amity.create_room("o", "oculus")
         count = len(self.amity.staff)
         self.amity.add_person("CYBORG", "STAFF", "N")
+        import pdb; pdb.set_trace()
         self.assertEqual(len(self.amity.staff), count + 1, msg="Staff CANNOT be added successfully") 
+
+    def test_if_randomly_allocated(self):
+        person = self.amity.add_person("CYBORG", "STAFF", "N")
+        room = self.amity.create_room("o", "Mombasa")
+        self.assertTrue(person in room.current_occupants)
 
 class TestReallocatePerson(unittest.TestCase):
 
