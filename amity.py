@@ -40,31 +40,44 @@ class Amity(object):
             wants_accommodation = "N"
             person = Staff(identifier, name)
             self.staff.append(person)
-            room_selected = Amity.randomly_allocate_office(self)
-            if room_selected == False:
+            office_selected = Amity.randomly_allocate_office(self)
+            if office_selected == False:
                 return "Welcome %s, You will be allocated an office as soon as we have space" %person.the_name
-            room_selected.current_occupants.append(person.the_name)
-            person.allocated = room_selected.room_name
-            print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
+            office_selected.current_occupants.append(person.the_name)
+            person.allocated = office_selected.room_name
+            print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, office_selected.room_name))
 
         elif role.lower() == "fellow":
             if wants_accommodation.upper() == "N" or wants_accommodation.upper() == "NO": #what if wants_acc says something beside y or n?
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
-                room_selected = Amity.randomly_allocate_office(self)
-                room_selected.current_occupants.append(person.the_name)
-                person.allocated = room_selected.room_name
-                print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
+                office_selected = Amity.randomly_allocate_office(self)
+                if office_selected == False:
+                    return "Welcome %s, You will be allocated an office as soon as we have space" %person.the_name 
+                office_selected.current_occupants.append(person.the_name)
+                person.allocated = office_selected.room_name
+                print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, office_selected.room_name))
             elif wants_accommodation.upper() == "Y" or wants_accommodation.upper() == "YES":
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
-                room_selected = Amity.randomly_allocate_office(self)
-                room_selected.current_occupants.append(person.the_name)
-                person.allocated = room_selected.room_name
+                office_selected = Amity.randomly_allocate_office(self)
                 ls_selected = Amity.randomly_allocate_ls(self)
-                ls_selected.current_occupants.append(person.the_name)
-                person.accommodated = ls_selected.room_name
-                print ("(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name, room_selected.room_name, ls_selected.room_name))
+                if office_selected == False and ls_selected == False:
+                    print("Welcome %s, You will be allocated an office and a Living Space as soon as we have space" %person.the_name)
+                elif office_selected == False and ls_selected != False:
+                    ls_selected.current_occupants.append(person.the_name)
+                    person.accommodated = ls_selected.room_name
+                    print("Welcome %s, You will live in %s and will be allocated an office as soon as we have space" %(person.the_name, ls_selected.room_name))
+                elif ls_selected == False and office_selected != False:
+                    office_selected.current_occupants.append(person.the_name)
+                    person.allocated = office_selected.room_name
+                    print("Welcome %s, You have been allocated to %s. You will be assigned a living space as soon as we have room" %(person.the_name, office_selected.room_name))
+                else:
+                    office_selected.current_occupants.append(person.the_name)
+                    person.allocated = office_selected.room_name
+                    ls_selected.current_occupants.append(person.the_name)
+                    person.accommodated = ls_selected.room_name
+                    print ("(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name, office_selected.room_name, ls_selected.room_name))
             else:
                 print("I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) ")
         else:
@@ -137,16 +150,57 @@ class Amity(object):
     def print_allocations(self):
         """ Prints a list of allocations.
         Specifying the optional -o option outputs the registered allocations to a txt file """
-        pass
+        
+        if len(self.offices) == 0:
+            print("NO offices added yet!")
+        else:
+            print ("OFFICES:")
+            print ("="*8)
+            for room in self.offices:
+                print(room.room_name.upper())
+                print("")
+                print('-'*20)
+                print("")
+                print(', '.join(room.current_occupants))
+                print("")
+                print("")
+        if len(self.l_spaces) == 0:
+            print("NO living spaces added yet!")
+        else:
+            print ("LIVING SPACES:")
+            print ("="*14)
+            for room in self.l_spaces:
+                print(room.room_name.upper())
+                print("")
+                print('-'*20)
+                print("")
+                print(', '.join(room.current_occupants))
+                print("")
+
 
     def print_unallocated(self):
         """ Prints a list of unallocated people to the screen.
         Specifying the -o option here outputs the information to the txt file provided """
-        pass
+        unallocated = []
+        everyone = self.fellows + self.staff #refactor to see if you can print which office is missing as well
+        for one_person in everyone:
+            if one_person.allocated == None:
+                unallocated.append([one_person.the_id, one_person.the_name])
+            elif one_person.accommodated == None:
+                unallocated.append([one_person.the_id, one_person.the_name])
+
+        for person in unallocated:
+            print("%s:- %s" % (person[0], person[1]))
+            
 
     def print_room(self, room_name):
         """ Prints the names of all the people in room_name on the screen """
-        pass
+        all_rooms = self.offices + self.l_spaces
+        for one_room in all_rooms:
+            if room_name in [room.room_name for room in all_rooms] and room_name.lower() == one_room.room_name.lower():
+                print ("Occcupants in %s:" % one_room.room_name.upper())
+                print (", ".join(one_room.current_occupants))
+
 
     def save_state(self):
         """ Persists all the data stored in the app to a SQLite database.
@@ -162,9 +216,16 @@ class Amity(object):
 # OR loads data first whenever program runs
 
 amity = Amity()
-amity.create_room("o", "oculus")
-amity.create_room("l", "Homabay")
+# amity.create_room("o", "oculus")
+# amity.create_room("l", "Homabay")
 amity.add_person("Faith", "fellow")
 amity.add_person("Tina", "staff")
 amity.add_person("Mulobi", "fellow", "Yes")
 amity.add_person("Alex", "staff", "Y")
+amity.add_person("Paul", "fellow", "Y")
+amity.add_person("Millicent", "staff", "N")
+amity.add_person("Ahmed", "fellow", "N")
+#import pdb; pdb.set_trace()
+# amity.print_allocations()
+# amity.print_room("oculus")
+amity.print_unallocated()
