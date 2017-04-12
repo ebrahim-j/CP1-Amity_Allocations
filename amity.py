@@ -45,7 +45,7 @@ class Amity(object):
                 return "Welcome %s, You will be allocated an office as soon as we have space" %person.the_name
             room_selected.current_occupants.append(person.the_name)
             person.allocated = room_selected.room_name
-            print ( "%s has been allocated to %s" % (person.the_name, room_selected.room_name))
+            print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
 
         elif role.lower() == "fellow":
             if wants_accommodation.upper() == "N" or wants_accommodation.upper() == "NO": #what if wants_acc says something beside y or n?
@@ -54,7 +54,7 @@ class Amity(object):
                 room_selected = Amity.randomly_allocate_office(self)
                 room_selected.current_occupants.append(person.the_name)
                 person.allocated = room_selected.room_name
-                print ( "%s has been allocated to %s" % (person.the_name, room_selected.room_name))
+                print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
             elif wants_accommodation.upper() == "Y" or wants_accommodation.upper() == "YES":
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
@@ -64,7 +64,7 @@ class Amity(object):
                 ls_selected = Amity.randomly_allocate_ls(self)
                 ls_selected.current_occupants.append(person.the_name)
                 person.accommodated = ls_selected.room_name
-                print ("%s has been appointed to %s and will live in %s" % (person.the_name, room_selected.room_name, ls_selected.room_name))
+                print ("(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name, room_selected.room_name, ls_selected.room_name))
             else:
                 print("I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) ")
         else:
@@ -90,7 +90,7 @@ class Amity(object):
         else:
             return "This"
 
-     def reallocate_person(self, name_id, new_room_name):
+    def reallocate_person(self, name_id, new_room_name):
         """ Reallocates a person with person_identifier to new_room_name """
         employees = self.fellows + self.staff
 
@@ -161,3 +161,10 @@ class Amity(object):
 #get clarity about if printing allocations/unallocated would require a kind of load state OR it's just the data while the program is running.
 # OR loads data first whenever program runs
 
+amity = Amity()
+amity.create_room("o", "oculus")
+amity.create_room("l", "Homabay")
+amity.add_person("Faith", "fellow")
+amity.add_person("Tina", "staff")
+amity.add_person("Mulobi", "fellow", "Yes")
+amity.add_person("Alex", "staff", "Y")
