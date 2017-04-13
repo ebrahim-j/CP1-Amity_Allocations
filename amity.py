@@ -62,7 +62,7 @@ class Amity(object):
                 self.fellows.append(person)
                 office_selected = Amity.randomly_allocate_office(self)
                 ls_selected = Amity.randomly_allocate_ls(self)
-                if office_selected == False and ls_selected == False:
+                if office_selected == False and ls_selected == False: #fix this
                     print("Welcome %s, You will be allocated an office and a Living Space as soon as we have space" %person.the_name)
                 elif office_selected == False and ls_selected != False:
                     ls_selected.current_occupants.append(person.the_name)
@@ -182,11 +182,11 @@ class Amity(object):
         """ Prints a list of unallocated people to the screen.
         Specifying the -o option here outputs the information to the txt file provided """
         unallocated = []
-        everyone = self.fellows + self.staff #refactor to see if you can print which office is missing as well
+        everyone = self.fellows + self.staff #refactor to see if you can print which office is missing as well. Maybe 2 separate loops
         for one_person in everyone:
             if one_person.allocated == None:
                 unallocated.append([one_person.the_id, one_person.the_name])
-            elif one_person.accommodated == None:
+            elif not isinstance(one_person, Staff) and one_person.accommodated == None:
                 unallocated.append([one_person.the_id, one_person.the_name])
 
         for person in unallocated:
@@ -212,20 +212,3 @@ class Amity(object):
         """ Loads data from a database into the application """
         pass
 
-#get clarity about if printing allocations/unallocated would require a kind of load state OR it's just the data while the program is running.
-# OR loads data first whenever program runs
-
-amity = Amity()
-# amity.create_room("o", "oculus")
-# amity.create_room("l", "Homabay")
-amity.add_person("Faith", "fellow")
-amity.add_person("Tina", "staff")
-amity.add_person("Mulobi", "fellow", "Yes")
-amity.add_person("Alex", "staff", "Y")
-amity.add_person("Paul", "fellow", "Y")
-amity.add_person("Millicent", "staff", "N")
-amity.add_person("Ahmed", "fellow", "N")
-#import pdb; pdb.set_trace()
-# amity.print_allocations()
-# amity.print_room("oculus")
-amity.print_unallocated()
