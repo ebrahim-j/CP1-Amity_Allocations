@@ -34,15 +34,18 @@ class Amity(object):
 
     
     def add_person(self, name, role, wants_accommodation='N'):
-        #try for edge cases here
-        identifier = randint(1, 9999) #query the db?
+        # if not name.isalpha() or not role.isalpha() or not wants_accommodation.isalpha():
+        #     return "Please ensure you don't have digits in name, role or accommodation"
+        if name.lower() in ("staff", "fellow"):
+            return "Person cannot have name 'Staff' or 'Fellow'"
+        identifier = 1 #randint(1, 9999) #query the db?
         if role.lower() == "staff":
             wants_accommodation = "N"
             person = Staff(identifier, name)
             self.staff.append(person)
             office_selected = Amity.randomly_allocate_office(self)
             if office_selected == False:
-                return "Welcome %s, You will be allocated an office as soon as we have space" %person.the_name
+                return "Welcome %s, You will be allocated an office as soon as we have space" % person.the_name
             office_selected.current_occupants.append(person.the_name)
             person.allocated = office_selected.room_name
             print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, office_selected.room_name))
@@ -89,7 +92,7 @@ class Amity(object):
     def create_room(self, prefix, name):
         """instantiates a living space or office based on prefix"""
         #check for edge cases here    
-
+        #query the db to see if room already exists
         if prefix.lower() == "office" or prefix.lower() == "o": #try regex
             room = Office(name)
             self.offices.append(room)
@@ -111,9 +114,22 @@ class Amity(object):
             if individual.the_id == name_id:
                 if new_room_name.lower() in [room.room_name.lower() for room in self.offices]: #check for when person is alloccated to same room
                     #what if staff is tried to be allocated to living space?
+                    #remove from one room and add to another's current occupants
+                    for room in self.offices:
+                        if individual.the_name in room.current_occupants:
+                            room.current_occupants.remove(individual.the_name)
+                    for room in self.offices:
+                        if room.room_name == new_room_name:
+                            room.current_occupants.append(individual.the_name)
                     individual.allocated = new_room_name
                     return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
                 elif new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
+                    for room in self.l_spaces:
+                        if individual.the_name in room.current_occupants:
+                            room.current_occupants.remove(individual.the_name)
+                    for room in self.l_spaces:
+                        if room.room_name == new_room_name:
+                            room.current_occupants.append(individual.the_name)
                     individual.accommodated = new_room_name
                     return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
                 else:
@@ -124,28 +140,31 @@ class Amity(object):
     def load_people(self, fileobj): 
         """ Adds people to rooms from a txt file """
         #try except this to see if file exists
+        # try:
         if fileobj[-4:] != '.txt':
             return "System can only load people from a text file"
 
-        fileobj = open("filename.txt", "r")
-
-        if not fileobj.closed:
-            print("file is already opened")
-        else:
-            fileobj.read()
-            for line in fileobj:
-                read1line = line.split()
-                name = read1line[0]
-                role = read1line[1]
-                if len(read1line) == 3:
-
-                    if role.upper() == "STAFF":
-                        wants_accommodation = "N"
-                    else:
-                        wants_accommodation = read1line[2]
-                    Person.add_person(name, role, wants_accommodation)
+        with open(fileobj, 'r') as my_file:
+            info = my_file.readlines()
+            for argument in info:
+                #print(argument)
+                argument = argument.split()
+                #print(argument)
+                name = str(argument[0]) + " " + str(argument[1])
+                role = str(argument[2].strip())
+                if len(argument) == 3:
+                    wants_accommodation = "N"
+                    print(self.add_person(name, role, wants_accommodation))
                 else:
-                    Person.add_person(name, role, wants_accommodation='N')
+                    wants_accommodation = str(argument[3])
+                    print(self.add_person(name, role, wants_accommodation))      
+                # return "Information provided not complete"
+                
+
+        
+        # except:
+        #     return "File does not exist"
+
 
     def print_allocations(self):
         """ Prints a list of allocations.
@@ -212,3 +231,20 @@ class Amity(object):
         """ Loads data from a database into the application """
         pass
 
+amity = Amity()
+
+amity.create_room("o", "oculus")
+amity.create_room("l", "Homabay")
+amity.add_person("Faith", "fellow")
+# amity.add_person("Mulobi", "fellow", "Yes")
+# amity.add_person("Alex", "staff", "Y")
+# amity.add_person("Paul", "fellow", "Y")
+# amity.add_person("Millicent", "staff", "N")
+# amity.add_person("Ahmed", "fellow", "N")
+print(amity.load_people("text.txt"))
+amity.print_allocations()
+# amity.print_room("oculus")
+print("")
+amity.print_unallocated()
+amity.reallocate_person(1, "Homabay")
+# import pdb; pdb.set_trace()

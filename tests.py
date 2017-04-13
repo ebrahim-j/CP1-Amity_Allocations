@@ -1,7 +1,7 @@
 """ Tests for apps """
 import os
 import unittest
-from amity2 import Amity
+from amity import Amity
 from person import Person, Staff, Fellow
 from rooms import Room, Office, LivingSpace
 
