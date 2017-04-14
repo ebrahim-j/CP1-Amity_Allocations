@@ -238,7 +238,7 @@ amity = Amity()
 
 amity.create_room("o", "oculus")
 amity.create_room("l", "Homabay")
-amity.create_room("l", "Surat")
+print(amity.create_room("l", "Surat"))
 amity.create_room("o", "Rome")
 # amity.add_person("Faith", "fellow")
 amity.add_person("Mulobi", "fellow", "Yes")
@@ -253,7 +253,7 @@ amity.print_room("Homabay")
 
 print("")
 amity.print_unallocated()
-print(amity.reallocate_person(11, "Surat"))
+print(amity.reallocate_person(1, "Surat"))
 
 amity.print_room("Surat")
 amity.print_room("Homabay")
