@@ -14,6 +14,7 @@ class Office(Room):
         super(Office, self).__init__(room_name)
         self.current_occupants = []
         self.max_capacity = 6
+        self.room_type = "OFFICE"
 
     def __str__(self):
         return "{}".format(self.room_name)
@@ -32,10 +33,12 @@ class LivingSpace(Room):
         super(LivingSpace, self).__init__(room_name)
         self.current_occupants = []
         self.max_capacity = 4
+        self.room_type = "LIVING"
+
 
     def __str__(self):
         return "{}".format(self.room_name)
-        
+
 
     def room_has_space(self):
         if len(self.current_occupants) < self.max_capacity:

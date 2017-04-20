@@ -8,7 +8,6 @@ class Person(object):
         self.the_id = the_id
         self.the_name = the_name
 
-    
 class Fellow(Person):
 
     def __init__(self, the_id, the_name):
