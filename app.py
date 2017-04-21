@@ -1,18 +1,17 @@
 """
 AMITY.
 Usage:
-    class_attendance_register add_class <name>
-    class_attendance_register remove_class <class_id>
-    class_attendance_register log_in <class_id>
-    class_attendance_register log_out <class_id>
-    class_attendance_register list_classes
-    class_attendance_register add_student <name>
-    class_attendance_register remove_student <student_id>
-    class_attendance_register check_in <student_id> <class_id>
-    class_attendance_register check_out <student_id> <class_id> <reason>
-    class_attendance_register list_students
-    class_attendance_register (-i | --interactive)
-    class_attendance_register (-h | --help | --version)
+    amity create_room <room_type> <room_name>...
+    amity add_person <person_name> <FELLOW|STAFF> [wants_accommodation]
+    amity reallocate_person <person_identifier> <new_room_name>
+    amity load_people [--o=filename]
+    amity print_allocations [-o=filename]
+    amity print_unallocated [-o=filename]
+    amity print_room <room_name>
+    amity save_state [--db=sqlite_database]
+    amity load_state <sqlite_database>
+    amity (-i | --interactive)
+    amity (-h | --help | --version)
 Options:
     -i, --interactive  Interactive Mode
     -h, --help  Show this screen and exit.
@@ -21,12 +20,9 @@ Options:
 import sys
 import cmd
 from docopt import docopt, DocoptExit
-from random import randint
-import time
-from Klass import Klass
-from Student import Student
-from Reason import Reason
-import sqlite3
+from amity import Amity
+
+amity = Amity()
 
 def docopt_cmd(func):
     """
@@ -62,86 +58,106 @@ def docopt_cmd(func):
 class MyInteractive (cmd.Cmd):
     intro = 'Welcome to my interactive program!' \
         + ' (type help for a list of commands.)'
-    prompt = '(main) '
+    prompt = '(Amity...) '
     file = None
 
     @docopt_cmd
-    def do_add_class(self, arg):
-        """Adds Class object to the database
-			Usage: add_class <name>"""
-        name = arg['<name>']
-        Klass.add_class(name)
+    def do_create_room(self, arg):
+        '''"Instantiates a living space or office based on prefix
+            Usage: create room <room_type> <room_name> ...'''
+        name = arg['<room_name>']
+        room_type = arg['<room_type>']
+
+        for room in name:
+            try:
+                print(amity.create_room(room_type, room))
+            except:
+                print("Something went wrong.")
 
     @docopt_cmd
-    def do_remove_class(self, arg):
-        """Deletes class object from the database
-			Usage: remove_class <class_id>"""
-        class_id = arg['<class_id>']
-			
-        Klass.remove_class(class_id)
+    def do_add_person(self, arg):
+        """Usage: add_person <person_name> <role> [<wants_accomodation>]"""
+
+        name = arg["<person_name>"]
+        role = arg["<role>"]
+        wants_accommodation = arg["<wants_accomodation>"]
+
+        print(amity.add_person(name, role, wants_accommodation))
 
     @docopt_cmd
-    def do_log_in(self, arg):
-        """Logs in a class session
-			Usage: log_in <class_id>"""
-        class_id = arg['<class_id>']
-        Klass.log_in(class_id)
+    def do_reallocate_person(self, arg):
+		"""Usage: reallocate_person <person_identifier> <new_room_name>"""
 
-    @docopt_cmd
-    def do_log_out(self, arg):
-        """Logs out a class session
-			Usage: log_out <class_id>"""
-        class_id = arg['<class_id>']
-        Klass.log_out(class_id)
+		name = arg["<person_identifier>"]
+		new_room = arg["<new_roomname>"]
 
-    @docopt_cmd
-    def do_list_classes(self, arg):
-        """Lists all the classes, whether in progress or not and the count of students in class
-			Usage: list_classes"""
-
-        Klass.list_classes()
+		print(amity.reallocate_person(name, new_room))
 
 
     @docopt_cmd
-    def do_add_student(self, arg):
-        """Adds a student to the database
-			Usage: add_student <name>"""
-        name = arg['<name>']
-        Student.add_student(name)
+    def do_load_people(self, arg):
+        """ Usage: load_people [--o=filename] """
+
+        if arg['--o']:
+            filename = arg['--o']
+        else:
+            filename = "text.txt"
+
+        print(amity.load_people(filename))
 
     @docopt_cmd
-    def do_remove_student(self, arg):
-        """Deletes a students from the database
-			Usage: remove_student <student_id>"""
-        student_id = arg['<student_id>']
-        Student.remove_student(student_id)
+    def do_print_allocations(self, arg):
+        """ Usage: print_allocations [--o=filename] """
+
+        if arg['--o']:
+            filename = arg['--o']
+        else:
+            filename = None
+
+
+        print(amity.print_allocations(filename))
+
 
     @docopt_cmd
-    def do_check_in(self, arg):
-        """ Checks a student into a class session
-			Usage: check_in <student_id> <class_id>"""
-        student_id = arg['<student_id>']
-        class_id = arg['<class_id>']
-        Student.checkIn(student_id, class_id)
-		
+    def do_print_unallocated(self, arg):
+        """ Usage: print_unallocated [--o=filename] """
+
+        if arg['--o']:
+            filename = arg['--o']
+        else:
+            filename = None
+
+
+        print(amity.print_unallocated(filename))
+
     @docopt_cmd
-    def do_check_out(self, arg):
-        """Checks a student out of a class session 
-			Usage: check_out <student_id> <class_id> <reason>"""
-        student_id = arg['<student_id>']
-        class_id = arg['<class_id>']
-        reason = arg['<reason>']
-        Reason.checkOut(student_id, class_id, reason)
-		
+    def do_print_room(self, arg):
+        """ Usage: print_rooms <room_name> """
+
+        room_name = arg['<room_name>']
+
+        print(amity.print_room(room_name))
+
     @docopt_cmd
-    def do_list_students(self, arg):
-        """Lists all the students and whether they are in class or not
-			Usage: list_students"""
+    def do_save_state(self, arg):
+        """ Usage: save_state [--db=dbname] """
 
-        Student.list_students()
+        if arg['--db']:
+            dbname = arg['--db']
+        else:
+            dbname = None
 
+        print(amity.save_state(dbname))
 
+    @docopt_cmd
+    def do_load_state(self, arg):
+        """ Usage: load_state [--db=dbname] """
 
+        if arg['--db']:
+            dbname = arg['--db']
+        else:
+            dbname = None
+        print(amity.load_state(dbname))
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
