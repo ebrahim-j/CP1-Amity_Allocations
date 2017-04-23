@@ -1,10 +1,18 @@
 """ Functions consisted in class Amity """
-from person import Fellow, Staff
-from rooms import Office, LivingSpace, Room
+import os
+from models.person import Fellow, Staff
+from models.rooms import Office, LivingSpace, Room
 from random import randint, choice
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models.dbModels import RoomModel, PersonModel, Base
+
+# correct for .lower() or likewise entries
+
 
 class Amity(object):
     """ class Amity """
+
     def __init__(self):
         self.fellows = []
         self.staff = []
@@ -21,7 +29,6 @@ class Amity(object):
         selected_room = choice(rooms_with_space)
         return selected_room
 
-    
     def randomly_allocate_ls(self):
         rooms_with_space = []
         for room in self.l_spaces:
@@ -32,139 +39,368 @@ class Amity(object):
         selected_room = choice(rooms_with_space)
         return selected_room
 
-    
-    def add_person(self, name, role, wants_accommodation='N'):
-        #try for edge cases here
-        identifier = randint(1, 9999) #query the db?
+    def add_person(self, firstname, lastname, role, wants_accommodation='N'):
+        # if not name.isalpha() or not role.isalpha() or not wants_accommodation.isalpha():
+        # return "Please ensure you don't have digits in name, role or
+        # accommodation"
+        all_people = self.fellows + self.staff
+        identifier = randint(1, 9999)  # query the db?
+        name = firstname + " " + lastname
+        name = name.upper()
+        if identifier in [person.the_id for person in all_people]:
+            return "Duplicate ID generated. Please try again"
         if role.lower() == "staff":
             wants_accommodation = "N"
             person = Staff(identifier, name)
             self.staff.append(person)
-            room_selected = Amity.randomly_allocate_office(self)
-            if room_selected == False:
-                return "Welcome %s, You will be allocated an office as soon as we have space" %person.the_name
-            room_selected.current_occupants.append(person.the_name)
-            person.allocated = room_selected.room_name
-            print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
-
+            office_selected = Amity.randomly_allocate_office(self)
+            if office_selected == False:
+                return "Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name)
+            office_selected.current_occupants.append(person.the_name)
+            person.allocated = office_selected.room_name
+            return "(%s): %s has been allocated to the office %s" % (person.the_id, person.the_name, office_selected.room_name)
         elif role.lower() == "fellow":
-            if wants_accommodation.upper() == "N" or wants_accommodation.upper() == "NO": #what if wants_acc says something beside y or n?
+            if wants_accommodation is None:
+                wants_accommodation = "N"
+            if wants_accommodation.upper() == "N" or wants_accommodation.upper() == "NO":
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
-                room_selected = Amity.randomly_allocate_office(self)
-                room_selected.current_occupants.append(person.the_name)
-                person.allocated = room_selected.room_name
-                print ( "(%s): %s has been allocated to %s" % (person.the_id, person.the_name, room_selected.room_name))
+                office_selected = Amity.randomly_allocate_office(self)
+                if office_selected == False:
+                    return "Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name)
+                office_selected.current_occupants.append(person.the_name)
+                person.allocated = office_selected.room_name
+                return "(%s): %s has been allocated to %s" % (
+                    person.the_id, person.the_name, office_selected.room_name)
             elif wants_accommodation.upper() == "Y" or wants_accommodation.upper() == "YES":
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
-                room_selected = Amity.randomly_allocate_office(self)
-                room_selected.current_occupants.append(person.the_name)
-                person.allocated = room_selected.room_name
+                office_selected = Amity.randomly_allocate_office(self)
                 ls_selected = Amity.randomly_allocate_ls(self)
-                ls_selected.current_occupants.append(person.the_name)
-                person.accommodated = ls_selected.room_name
-                print ("(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name, room_selected.room_name, ls_selected.room_name))
+                if office_selected == False and ls_selected == False:
+                    return "Welcome (%s) %s, You will be allocated an office and a Living Space as soon as we have space" % (
+                        person.the_id, person.the_name)
+                elif office_selected == False and ls_selected != False:
+                    ls_selected.current_occupants.append(person.the_name)
+                    person.accommodated = ls_selected.room_name
+                    return "Welcome (%s) %s, You will live in %s and will be allocated an office as soon as we have space" % (
+                        person.the_id, person.the_name, ls_selected.room_name)
+                elif ls_selected == False and office_selected != False:
+                    office_selected.current_occupants.append(person.the_name)
+                    person.allocated = office_selected.room_name
+                    return "Welcome (%s) %s, You have been allocated to %s. You will be assigned a living space as soon as we have room" % (
+                        person.the_id, person.the_name, office_selected.room_name)
+                else:
+                    office_selected.current_occupants.append(person.the_name)
+                    person.allocated = office_selected.room_name
+                    ls_selected.current_occupants.append(person.the_name)
+                    person.accommodated = ls_selected.room_name
+                    return "(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name.upper(), office_selected.room_name.upper(), ls_selected.room_name.upper())
             else:
-                print("I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) ")
+                return "I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) "
         else:
-            print("Person can either be Staff or Fellow")
-            
+            return "Person can either be Staff or Fellow"
 
+    def get_everyone(self):
+        """ Prints all the people in Amity on the screen"""
+        everyone = self.fellows + self.staff
+
+        if len(everyone) == 0:
+            return "Nobody in Amity! :'("
+        response = ""
+        for guy in everyone:
+            if isinstance(guy, Fellow):
+                typeguy = "Fellow"
+            else:
+                typeguy = "Staff"
+            response += "{} | {} | {}".format(guy.the_id, guy.the_name, typeguy) + "\n\n"
+        return response
 
 
     def create_room(self, prefix, name):
         """instantiates a living space or office based on prefix"""
-        #check for edge cases here    
-
-        if prefix.lower() == "office" or prefix.lower() == "o": #try regex
+        # check for edge cases here
+        all_rooms = self.offices + self.l_spaces
+        if not name.isalpha():
+            return "Room cannot have digits"
+        if not prefix.isalpha():
+            return "Room type cannot be in digits"
+        name = name.upper()
+        if prefix.lower() == "office" or prefix.lower() == "o":  # try regex
+            if name.upper() in [room.room_name.upper() for room in all_rooms]:
+                return "Room name: %s already exists" % name
             room = Office(name)
             self.offices.append(room)
             result = "We have successfully created a new office called: %s" % room.room_name.upper()
             return result
-        elif prefix.lower() == "living space" or prefix.lower() == "livingspace" or prefix.lower() == "l" or prefix.lower() == "ls": #try regex
+        elif prefix.lower() == "living space" or prefix.lower() == "livingspace" or prefix.lower() == "l" or prefix.lower() == "ls":  # try regex
+            if name.upper() in [room.room_name.upper() for room in all_rooms]:
+                return "Room name: %s already exists"%name
             room = LivingSpace(name)
             self.l_spaces.append(room)
-            result = "New living quarters ( %s ) successfully created!" % room.room_name.upper()
+            result = "New living quarters ( %s ) successfully created!" % room.room_name.upper(
+            )
             return result
         else:
             return "This"
 
-    def reallocate_person(self, name_id, new_room_name):
+
+    def reallocate_person(self, person_id, new_room_name):
         """ Reallocates a person with person_identifier to new_room_name """
         employees = self.fellows + self.staff
-
+        all_rooms = self.offices + self.l_spaces
+        new_room_name = new_room_name.upper()
+        # see for someone who doesn't have a room kabisa
         for individual in employees:
-            if individual.the_id == name_id:
-                if new_room_name.lower() in [room.room_name.lower() for room in self.offices]: #check for when person is alloccated to same room
-                    #what if staff is tried to be allocated to living space?
-                    individual.allocated = new_room_name
-                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
-                elif new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
-                    individual.accommodated = new_room_name
-                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
-                else:
+            if individual.the_id == person_id:
+                # check for when person is alloccated to same room
+                if new_room_name.upper() not in [room.room_name for room in all_rooms]:
                     return "This room does not exist. (Make sure you spell check your room names)"
-            else:
-                return "This person cannot be identified"
+                if new_room_name.upper() == individual.allocated:
+                    return "%s already in %s" %(individual.the_name, new_room_name)
+                elif new_room_name.upper() in [room.room_name for room in self.offices]:
+                    for room in self.offices:
+                        if room.room_name == new_room_name and not room.room_has_space():
+                            return "Sorry, room is full"
+                    for room in self.offices:
+                        if individual.the_name in room.current_occupants:
+                            room.current_occupants.remove(
+                                individual.the_name)
+                    for room in self.offices:
+                        if room.room_name == new_room_name and room.room_has_space():
+                            room.current_occupants.append(
+                                individual.the_name)
+                        individual.allocated = new_room_name
+                        print(individual.allocated)
+                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
+                elif not isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
+                    if new_room_name.upper() == individual.accommodated:
+                        return "%s already in %s" % (individual.the_name, new_room_name)
+                    for room in self.l_spaces:
+                        if room.room_name == new_room_name and not room.room_has_space():
+                            return "Sorry, room is full"
+                    for room in self.l_spaces:
+                            if individual.the_name in room.current_occupants:
+                                room.current_occupants.remove(
+                                    individual.the_name)
+                    for room in self.l_spaces:
+                            if room.room_name == new_room_name and room.room_has_space():
+                                room.current_occupants.append(
+                                    individual.the_name)
+                            individual.accommodated = new_room_name
+                            print(individual.accommodated)
+                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
+                elif isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
+                    return "Cannot allocate staff to a living Space"
 
-    def load_people(self, fileobj): 
+        return "This person cannot be identified"
+
+
+    def load_people(self):
         """ Adds people to rooms from a txt file """
-        #try except this to see if file exists
-        if fileobj[-4:] != '.txt':
-            return "System can only load people from a text file"
+        filename = "text.txt"
 
-        fileobj = open("filename.txt", "r")
+        scriptpath = os.path.dirname(__file__)
+        file_path = os.path.join(scriptpath, filename)
 
-        if not fileobj.closed:
-            print("file is already opened")
-        else:
-            fileobj.read()
-            for line in fileobj:
-                read1line = line.split()
-                name = read1line[0]
-                role = read1line[1]
-                if len(read1line) == 3:
-
-                    if role.upper() == "STAFF":
+        try:
+            with open(file_path, 'r') as my_file:
+                info = my_file.readlines()
+                if len(info) == 0:
+                    return "File may be empty or in incorrect format"
+                for argument in info:
+                    argument = argument.split()
+                    firstname = str(argument[0].strip())
+                    lastname = str(argument[1].strip())
+                    role = str(argument[2].strip())
+                    if len(argument) == 3:
                         wants_accommodation = "N"
+                        self.add_person(firstname, lastname, role, wants_accommodation)
+                    elif len(argument) == 4:
+                        wants_accommodation = str(argument[3])
+                        self.add_person(firstname, lastname, role, wants_accommodation)
                     else:
-                        wants_accommodation = read1line[2]
-                    Person.add_person(name, role, wants_accommodation)
-                else:
-                    Person.add_person(name, role, wants_accommodation='N')
+                        return "Inaccurate information. Double check your file"
+                return "File loaded successfully"
+        except:
+            return "File does not exist"
 
-    def print_allocations(self):
+
+    def print_allocations(self, filename=None):
         """ Prints a list of allocations.
         Specifying the optional -o option outputs the registered allocations to a txt file """
-        pass
+        output = ""
+        if len(self.offices) == 0:
+            output = "NO offices added yet!\n"
+        else:
+            output = "OFFICES:\n" + ("=" * 8 + "\n")
+            for room in self.offices:
+                output += room.room_name.upper() + "\n" + ("-" * 50 + "\n")
+                output += ", ".join(room.current_occupants) + "\n\n"
+        if len(self.l_spaces) == 0:
+            output += "NO living spaces added yet!"
+        else:
+            output += "LIVING SPACES:\n" + ("=" * 14 + "\n")
+            for room in self.l_spaces:
+                output += room.room_name.upper() + "\n" + ("-" * 50 + "\n")
+                output += ", ".join(room.current_occupants) + "\n\n"
 
-    def print_unallocated(self):
+        if filename is None:
+            return output
+        else:
+            if filename[-4:] != ".txt":
+                filename += ".txt"
+            with open(filename, 'w+') as my_file:
+                my_file.write(output)
+            return "Data has been successfully saved to {}".format(filename)
+
+
+    def print_unallocated(self, filename=None):
         """ Prints a list of unallocated people to the screen.
         Specifying the -o option here outputs the information to the txt file provided """
-        pass
+        unallocated = []
+        everyone = self.fellows + self.staff
+        for one_person in everyone:
+            if isinstance(one_person, Staff):
+                type_person = "Staff"
+            else:
+                type_person = "Fellow"
+            if one_person.allocated is None and not isinstance(one_person, Staff) and one_person.accommodated is None:
+                unallocated.append([one_person.the_id, one_person.the_name, type_person, "Office", "Living Space"])
+            if one_person.allocated is None:
+                unallocated.append([one_person.the_id, one_person.the_name, type_person, "Office"])
+            elif not isinstance(one_person, Staff) and one_person.accommodated is None:
+                unallocated.append([one_person.the_id, one_person.the_name, type_person, "Living Space"])
+
+        if len(unallocated) == 0:
+            return "This list is empty"
+
+        output = "The following people are unallocated: \n"
+        for person in unallocated:
+            if len(person) == 5:
+                output += "%s:- %s (%s) ---> Not allocated a %s and %s\n" % (person[0], person[1], person[2], person[3], person[4])
+            else:
+                output += "%s:- %s (%s) ---> Not allocated a %s\n" % (person[0], person[1], person[2], person[3])
+
+        if filename is None:
+            return output
+        else:
+            if filename[-4:] != ".txt":
+                filename += ".txt"
+            with open(filename, 'w+') as my_file:
+                my_file.write(output)
+            return "Data has been successfully saved to {}".format(filename)
+
 
     def print_room(self, room_name):
         """ Prints the names of all the people in room_name on the screen """
-        pass
+        all_rooms = self.offices + self.l_spaces
+        try:
+            for one_room in all_rooms:
+                if room_name.upper() in [room.room_name for room in all_rooms] and room_name.upper() == one_room.room_name:
+                    output = "Occcupants in %s:" % one_room.room_name.upper() + "\n"
+                    if len(one_room.current_occupants) == 0:
+                        output += "Empty"
+                    output += ", ".join(one_room.current_occupants)
+            return output
+        except:
+            return "Room not found"
 
-    def save_state(self):
+
+    def save_state(self, database=None):
         """ Persists all the data stored in the app to a SQLite database.
         Specifying the --db parameter explicitly stores the data in the
         sqlite_database specified """
-        pass
+        all_rooms = self.offices + self.l_spaces
+        everyone = self.fellows + self.staff
+        if database == None:
+            database = "amity.db"
+        else:
+            if database[-3:] != ".db":
+                database += ".db"
+        engine = create_engine('sqlite:///' + database)
+        Base.metadata.bind = engine
+        Base.metadata.create_all(engine)
+        DBSession = sessionmaker(bind=engine)
+        session = DBSession()
 
-    def load_state(self):
-        """ Loads data from a database into the application """
-        pass
+        for room in all_rooms:
+            save_room = RoomModel(
+                name=room.room_name,
+                room_type=room.room_type,
+            )
+            existing = session.query(RoomModel).filter(
+                RoomModel.name == room.room_name).count()
+            if not existing:
+                session.add(save_room)
+            session.commit()
 
-#get clarity about if printing allocations/unallocated would require a kind of load state OR it's just the data while the program is running.
-# OR loads data first whenever program runs
+        for person in everyone:
+            if isinstance(person, Fellow):
+                save_person = PersonModel(
+                    person_id=person.the_id,
+                    name=person.the_name,
+                    role="FELLOW",
+                    office_space=person.allocated,
+                    living_space=person.accommodated
+                )
+            else:
+                save_person = PersonModel(
+                    person_id=person.the_id,
+                    name=person.the_name,
+                    role="STAFF",
+                    office_space=person.allocated,
+                    living_space=None
+                )
+            existing = session.query(PersonModel).filter(
+                PersonModel.person_id == person.the_id).filter(PersonModel.office_space == person.allocated).filter(PersonModel.living_space == person.accommodated).count()
 
-amity = Amity()
-amity.create_room("o", "oculus")
-amity.create_room("l", "Homabay")
-amity.add_person("Faith", "fellow")
-amity.add_person("Tina", "staff")
-amity.add_person("Mulobi", "fellow", "Yes")
-amity.add_person("Alex", "staff", "Y")
+            if not existing:
+                session.add(save_person)
+            session.commit()
+
+
+    def load_state(self, db_name):
+        """This method loads data from the db
+                into the application
+                """
+        if not os.path.isfile("{}.db".format(db_name)):
+            return ("The database does not exist!")
+
+        if db_name[-3:] != ".db":
+            db_name += ".db"
+
+        engine = create_engine('sqlite:///' + db_name)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        session = DBSession()
+
+        all_rooms = session.query(RoomModel).all()
+        everyone = session.query(PersonModel).all()
+
+        for room in all_rooms:
+            if room.room_type == "OFFICE":
+                office = Office(room.name)
+                self.offices.append(office)
+                people_in_room = session.query(PersonModel.name).filter(
+                    PersonModel.office_space == room.name).all()
+                people_in_room = [str(i[0]) for i in people_in_room]
+                office.current_occupants = people_in_room
+            else:
+                ls = LivingSpace(room.name)
+                self.l_spaces.append(ls)
+                people_in_room = session.query(PersonModel.name).filter(
+                    PersonModel.living_space == room.name).all()
+                people_in_room = [str(i[0]) for i in people_in_room]
+                ls.current_occupants = people_in_room
+
+        for person in everyone:
+            if person.role == "STAFF":
+                staff = Staff(person.person_id, person.name)
+                self.staff.append(staff)
+                staff.allocated = str(person.office_space)
+            else:
+                fellow = Fellow(person.person_id, person.name)
+                self.fellows.append(fellow)
+                fellow.allocated = str(person.office_space)
+                fellow.accommodated = str(person.living_space)
