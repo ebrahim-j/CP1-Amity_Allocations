@@ -120,25 +120,25 @@ class Amity(object):
         """instantiates a living space or office based on prefix"""
         all_rooms = self.offices + self.l_spaces
         if not name.isalpha():
-            return "Room cannot have digits"
+            return colored("Room cannot have digits", "red")
         if not prefix.isalpha():
-            return "Room type cannot be in digits"
+            return colored("Room type cannot be in digits", "red")
         name = name.upper()
         if prefix.lower() == "office" or prefix.lower() == "o": 
             if name.upper() in [room.room_name.upper() for room in all_rooms]:
-                return "Room name: %s already exists" % name
+                return colored("Room name: %s already exists" % name, "red")
             room = Office(name)
             self.offices.append(room)
             result = "We have successfully created a new office called: %s" % room.room_name.upper()
-            return result
+            return colored(result, "cyan")
         elif prefix.lower() == "living space" or prefix.lower() == "livingspace" or prefix.lower() == "l" or prefix.lower() == "ls":  # try regex
             if name.upper() in [room.room_name.upper() for room in all_rooms]:
-                return "Room name: %s already exists"%name
+                return colored("Room name: %s already exists"%name, "red")
             room = LivingSpace(name)
             self.l_spaces.append(room)
             result = "New living quarters ( %s ) successfully created!" % room.room_name.upper(
             )
-            return result
+            return colored(result, "cyan")
 
 
 
@@ -152,13 +152,13 @@ class Amity(object):
             if individual.the_id == person_id:
 
                 if new_room_name.upper() not in [room.room_name for room in all_rooms]:
-                    return "This room does not exist. (Make sure you spell check your room names)"
+                    return colored("This room does not exist. (Make sure you spell check your room names)", "red")
                 if new_room_name.upper() == individual.allocated:
-                    return "%s already in %s" %(individual.the_name, new_room_name)
+                    return colored("%s already in %s" %(individual.the_name, new_room_name), "yellow")
                 elif new_room_name.upper() in [room.room_name for room in self.offices]:
                     for room in self.offices:
                         if room.room_name == new_room_name and not room.room_has_space():
-                            return "Sorry, room is full"
+                            return colored("Sorry, room is full", "green")
                     for room in self.offices:
                         if individual.the_name in room.current_occupants:
                             room.current_occupants.remove(
@@ -168,13 +168,13 @@ class Amity(object):
                             room.current_occupants.append(
                                 individual.the_name)
                         individual.allocated = new_room_name
-                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
+                    return colored("%s has been reallocated to %s" % (individual.the_name, new_room_name), "cyan")
                 elif not isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
                     if new_room_name.upper() == individual.accommodated:
-                        return "%s already in %s" % (individual.the_name, new_room_name)
+                        return colored("%s already in %s" % (individual.the_name, new_room_name), "yellow")
                     for room in self.l_spaces:
                         if room.room_name == new_room_name and not room.room_has_space():
-                            return "Sorry, room is full"
+                            return colored("Sorry, room is full", "green")
                     for room in self.l_spaces:
                             if individual.the_name in room.current_occupants:
                                 room.current_occupants.remove(
@@ -184,11 +184,11 @@ class Amity(object):
                                 room.current_occupants.append(
                                     individual.the_name)
                             individual.accommodated = new_room_name
-                    return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
+                    return colored("%s has been reallocated to %s" % (individual.the_name, new_room_name), "cyan")
                 elif isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
-                    return "Cannot allocate staff to a living Space"
+                    return colored("Cannot allocate staff to a living Space", "red")
 
-        return "This person cannot be identified"
+        return colored("This person cannot be identified", "red")
 
 
     def load_people(self):
@@ -202,7 +202,7 @@ class Amity(object):
             with open(file_path, 'r') as my_file:
                 info = my_file.readlines()
                 if len(info) == 0:
-                    return "File may be empty or in incorrect format"
+                    return colored("File is empty", "yellow")
                 for argument in info:
                     argument = argument.split()
                     firstname = str(argument[0].strip())
@@ -215,10 +215,10 @@ class Amity(object):
                         wants_accommodation = str(argument[3])
                         self.add_person(firstname, lastname, role, wants_accommodation)
                     else:
-                        return "Inaccurate information. Double check your file"
-                return "File loaded successfully"
+                        return colored("Inaccurate information. Double check your file", "red")
+                return colored("File loaded successfully", "cyan")
         except:
-            return "File does not exist"
+            return colored("File does not exist", "red")
 
 
     def print_allocations(self, filename=None):
@@ -241,13 +241,13 @@ class Amity(object):
                 output += ", ".join(room.current_occupants) + "\n\n"
 
         if filename is None:
-            return output
+            return colored(output, "blue")
         else:
             if filename[-4:] != ".txt":
                 filename += ".txt"
             with open(filename, 'w+') as my_file:
                 my_file.write(output)
-            return "Data has been successfully saved to {}".format(filename)
+            return colored("Data has been successfully saved to {}".format(filename), "cyan")
 
 
     def print_unallocated(self, filename=None):
@@ -262,13 +262,13 @@ class Amity(object):
                 type_person = "Fellow"
             if one_person.allocated is None and not isinstance(one_person, Staff) and one_person.accommodated is None:
                 unallocated.append([one_person.the_id, one_person.the_name, type_person, "Office", "Living Space"])
-            if one_person.allocated is None:
+            elif one_person.allocated is None:
                 unallocated.append([one_person.the_id, one_person.the_name, type_person, "Office"])
             elif not isinstance(one_person, Staff) and one_person.accommodated is None:
                 unallocated.append([one_person.the_id, one_person.the_name, type_person, "Living Space"])
 
         if len(unallocated) == 0:
-            return "This list is empty"
+            return colored("This list is empty", "yellow")
 
         output = "The following people are unallocated: \n"
         for person in unallocated:
@@ -278,13 +278,13 @@ class Amity(object):
                 output += "%s:- %s (%s) ---> Not allocated a %s\n" % (person[0], person[1], person[2], person[3])
 
         if filename is None:
-            return output
+            return colored(output, "blue")
         else:
             if filename[-4:] != ".txt":
                 filename += ".txt"
             with open(filename, 'w+') as my_file:
                 my_file.write(output)
-            return "Data has been successfully saved to {}".format(filename)
+            return colored("Data has been successfully saved to {}".format(filename), "cyan")
 
 
     def print_room(self, room_name):
@@ -297,9 +297,9 @@ class Amity(object):
                     if len(one_room.current_occupants) == 0:
                         output += "Empty"
                     output += ", ".join(one_room.current_occupants)
-            return output
+            return colored(output, "blue")
         except:
-            return "Room not found"
+            return colored("Room not found", "red")
 
 
     def save_state(self, database=None):
@@ -352,7 +352,7 @@ class Amity(object):
             session.add(save_person)
             session.commit()
 
-        return "Data saved to %s successfully!" %database
+        return colored("Data saved to %s successfully!" %database, "cyan")
 
 
     def load_state(self, db_name):
@@ -360,7 +360,7 @@ class Amity(object):
                 into the application
                 """
         if not os.path.isfile("{}.db".format(db_name)):
-            return ("The database does not exist!")
+            return colored("The database does not exist!", "red")
 
         if db_name[-3:] != ".db":
             db_name += ".db"
@@ -400,4 +400,4 @@ class Amity(object):
                 fellow.allocated = str(person.office_space)
                 fellow.accommodated = str(person.living_space)
 
-        return "Data loaded successfully!"
+        return colored("Data loaded successfully!", "cyan")
