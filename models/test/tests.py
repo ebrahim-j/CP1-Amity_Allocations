@@ -42,7 +42,7 @@ class TestAmity(unittest.TestCase):
         create =self.amity.add_person("WOLVERINE", "LOGAN", "FELLOW", "Y")
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
-        self.assertEqual(create, "(%s): WOLVERINE LOGAN has been appointed to OCULUS and will live in LONDON"%person_identity, msg="Fellow CANNOT be added successfully")
+        self.assertEqual(create, "\x1b[36m(%s): WOLVERINE LOGAN has been appointed to OCULUS and will live in LONDON\x1b[0m"%person_identity)#, msg="Fellow CANNOT be added successfully"
 
     # def test_whether_staff_already_exists(self):
     #     create =self.amity.add_person("DOCTOR", "STRANGE", "STAFF", "N")
@@ -53,7 +53,7 @@ class TestAmity(unittest.TestCase):
         create =self.amity.add_person("THE","CYBORG", "STAFF")
         person_identity = [person.the_id for person in self.amity.staff]
         person_identity = person_identity[0]
-        self.assertEqual(create, "Welcome (%s) THE CYBORG, You will be allocated an office as soon as we have space"%person_identity, msg="Staff CANNOT be added successfully" )
+        self.assertEqual(create, "\x1b[32mWelcome (%s) THE CYBORG, You will be allocated an office as soon as we have space\x1b[0m"%person_identity)#, msg="Staff CANNOT be added successfully" 
 
     def test_if_randomly_allocated(self):
        self.amity.create_room("o", "Mombasa")
