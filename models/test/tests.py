@@ -10,135 +10,282 @@ class TestAmity(unittest.TestCase):
 
     def setUp(self):
         self.amity = Amity()
-    #test_if_can_add_more than one room
-    #test_if_duplicate_entries_not_added
-
-    def test_whether_office_already_exists(self):
-        create1 =self.amity.create_room("O", "asgard")
-        create2 =self.amity.create_room("O", "asgard")
-        self.assertEqual("Room name: ASGARD already exists", create2, msg="Duplicate room is being created")
-
-    def test_if_office_created(self):
-        self.assertEqual(self.amity.create_room("O", "cave"), "We have successfully created a new office called: CAVE", msg="Office CANNOT be created successfully")
-
-    def test_whether_livingspace_already_exists(self):
-        create1 =self.amity.create_room("L", "statehouse")
-        create2 =self.amity.create_room("L", "statehouse")
-        self.assertEqual("Room name: STATEHOUSE already exists", create2,  msg="Duplicate room is being created")
-
-    def test_if_livingspace_created(self):
-        self.assertEqual(self.amity.create_room("L", "cave"), "New living quarters ( CAVE ) successfully created!", msg="Office CANNOT be created successfully")
-
-    # def test_whether_fellow_already_exists(self):
-    #     create =self.amity.add_person("WONDER","WOMAN", "FELLOW", "Y")
-    #     create1 =self.amity.add_person("WONDER", "WOMAN", "FELLOW", "N")
-    #     self.assertEqual("Person already exists", create1)#, msg="Duplicate person being created"
-
-    #test_if_person_identifier_exists, 2 people with the same name?
+    # test_if_can_add_more than one room
+    # test_if_duplicate_entries_not_added
 
     def test_if_fellow_added(self):
-        room =self.amity.create_room("o", "oculus")
-        ls =self.amity.create_room("l", "london")
-        create =self.amity.add_person("WOLVERINE", "LOGAN", "FELLOW", "Y")
+        room = self.amity.create_room("o", "oculus")
+        ls = self.amity.create_room("l", "london")
+        create = self.amity.add_person("WOLVERINE", "LOGAN", "FELLOW", "Y")
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
-        self.assertEqual(create, "\x1b[36m(%s): WOLVERINE LOGAN has been appointed to OCULUS and will live in LONDON\x1b[0m"%person_identity)#, msg="Fellow CANNOT be added successfully"
+        self.assertEqual(create, "\x1b[36m(%s): WOLVERINE LOGAN has been appointed to OCULUS and will live in LONDON\x1b[0m" %
+                         person_identity, msg="Fellow CANNOT be added successfully")
 
-    # def test_whether_staff_already_exists(self):
-    #     create =self.amity.add_person("DOCTOR", "STRANGE", "STAFF", "N")
-    #     create1 =self.amity.add_person("DOCTOR", "STRANGE", "STAFF", "N")
-    #     self.assertEqual("Person already exists", create1)#, msg="Duplicate person being created"
-
-    def test_if_staff_added(self):
-        create =self.amity.add_person("THE","CYBORG", "STAFF")
+    def test_staff_added_and_allocated(self):
+        self.amity.create_room("o", "dakar")
+        response = self.amity.add_person("THE", "MACE", "STAFF")
         person_identity = [person.the_id for person in self.amity.staff]
         person_identity = person_identity[0]
-        self.assertEqual(create, "\x1b[32mWelcome (%s) THE CYBORG, You will be allocated an office as soon as we have space\x1b[0m"%person_identity)#, msg="Staff CANNOT be added successfully" 
+        self.assertEqual(
+            response, "\x1b[36m(%s): THE MACE has been allocated to the office DAKAR\x1b[0m" % person_identity)
 
-    def test_if_randomly_allocated(self):
-       self.amity.create_room("o", "Mombasa")
-       self.amity.add_person("THE","CYBORG", "STAFF", "N")
-       self.assertTrue("THE CYBORG" in self.amity.offices[0].current_occupants)
+    def test_if_staff_added_with_no_office(self):
+        create = self.amity.add_person("THE", "CYBORG", "STAFF")
+        person_identity = [person.the_id for person in self.amity.staff]
+        person_identity = person_identity[0]
+        self.assertEqual(create, "\x1b[32mWelcome (%s) THE CYBORG, You will be allocated an office as soon as we have space\x1b[0m" %
+                         person_identity, msg="Staff CANNOT be added successfully")
 
+    def test_fellow_doesnt_get_office(self):
+        response = self.amity.add_person("THE", "LEGEND", "fellow")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.assertEqual(
+            response, "\x1b[32mWelcome (%s) THE LEGEND, You will be allocated an office as soon as we have space\x1b[0m" % person_identity)
+
+    def test_fellow_gets_office(self):
+        self.amity.create_room("o", "kili")
+        response = self.amity.add_person("THE", "LEGEND", "FELLOW", "N")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.assertEqual(
+            response, "\x1b[36m(%s): THE LEGEND has been allocated to KILI\x1b[0m" % person_identity)
+
+    def test_fellow_doesnt_get_any_rooms(self):
+        response = self.amity.add_person("THE", "LEGEND", "FELLOW", "Y")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.assertEqual(
+            response, "\x1b[32mWelcome (%s) THE LEGEND, You will be allocated an office and a Living Space as soon as we have space\x1b[0m" % person_identity)
+
+    def test_fellow_gets_only_office(self):
+        self.amity.create_room("o", "kili")
+        response = self.amity.add_person("THE", "LEGEND", "FELLOW", "Y")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.assertEqual(
+            response, "\x1b[33mWelcome (%s) THE LEGEND, You have been allocated to KILI. You will be assigned a living space as soon as we have room\x1b[0m" % person_identity)
+
+    def test_fellow_gets_only_ls(self):
+        self.amity.create_room("l", "kili")
+        response = self.amity.add_person("THE", "LEGEND", "FELLOW", "Y")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.assertEqual(
+            response, "\x1b[33mWelcome (%s) THE LEGEND, You will live in KILI and will be allocated an office as soon as we have space\x1b[0m" % person_identity)
+
+    def test_bad_input(self):
+        response = self.amity.add_person("ief", "sd", "stuff")
+        self.assertEqual(
+            response, "\x1b[31mPerson can either be Staff or Fellow\x1b[0m")
+
+    def test_invalid_input(self):
+        response = self.amity.add_person("ief", "sd", "fellow", "x")
+        self.assertEqual(
+            response, "\x1b[31mI don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) \x1b[0m")
+
+    def test_get_empty_people(self):
+        response = self.amity.get_everyone()
+        self.assertEqual(response, "\x1b[31mNobody in Amity! :'(\x1b[0m")
+
+    def test_get_some_people(self):
+        self.amity.add_person("THE", "LEGEND", "FELLOW", "Y")
+        self.amity.add_person("THE", "ROCK", "STAFF")
+        fellow_id = [person.the_id for person in self.amity.fellows]
+        staff_identity = [person.the_id for person in self.amity.staff]
+        expected = "\x1b[34m{} | THE LEGEND | Fellow\n\n{} | THE ROCK | Staff\n\n\x1b[0m".format(
+            fellow_id[0], staff_identity[0])
+        response = self.amity.get_everyone()
+        self.assertEqual(response, expected)
+
+    def test_no_digits_in_name(self):
+        response = self.amity.create_room("o", "fequjy9")
+        self.assertEqual(response, "\x1b[31mRoom cannot have digits\x1b[0m")
+
+    def test_no_digits_in_type(self):
+        response = self.amity.create_room("off1ce", "fequjy")
+        self.assertEqual(
+            response, "\x1b[31mRoom type cannot be in digits\x1b[0m")
+
+    def test_whether_office_already_exists(self):
+        create1 = self.amity.create_room("O", "asgard")
+        create2 = self.amity.create_room("O", "asgard")
+        self.assertEqual("\x1b[31mRoom name: ASGARD already exists\x1b[0m",
+                         create2, msg="Duplicate room is being created")
+
+    def test_if_office_created(self):
+        self.assertEqual(self.amity.create_room(
+            "O", "cave"), "\x1b[36mWe have successfully created a new office called: CAVE\x1b[0m", msg="Office CANNOT be created successfully")
+
+    def test_whether_livingspace_already_exists(self):
+        create1 = self.amity.create_room("L", "statehouse")
+        create2 = self.amity.create_room("L", "statehouse")
+        self.assertEqual("\x1b[31mRoom name: STATEHOUSE already exists\x1b[0m",
+                         create2,  msg="Duplicate room is being created")
+
+    def test_if_livingspace_created(self):
+        self.assertEqual(self.amity.create_room(
+            "L", "cave"), "\x1b[36mNew living quarters ( CAVE ) successfully created!\x1b[0m", msg="Office CANNOT be created successfully")
+
+    def test_cant_be_reallocated_to_same_office(self):
+        self.amity.create_room("o", "durban")
+        self.amity.add_person("THE", "CYBORG", "STAFF", "N")
+        person_identity = [person.the_id for person in self.amity.staff]
+        person_identity = person_identity[0]
+        response = self.amity.reallocate_person(person_identity, "durban")
+        self.assertEqual(
+            response, "\x1b[33mTHE CYBORG already in DURBAN\x1b[0m")
+
+    def test_cant_be_reallocated_to_same_ls(self):
+        self.amity.create_room("ls", "durban")
+        self.amity.add_person("THE", "CYBORG", "Fellow", "Y")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        response = self.amity.reallocate_person(person_identity, "durban")
+        self.assertEqual(
+            response, "\x1b[33mTHE CYBORG already in DURBAN\x1b[0m")
+
+    def test_full_office(self):
+        self.amity.add_person("the", "undertaker", "fellow", "n")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        self.amity.create_room("office", "Malindi")
+        self.amity.load_people()
+        response = self.amity.reallocate_person(person_identity, "Malindi")
+        self.assertEqual(response, "\x1b[32mSorry, room is full\x1b[0m")
 
     def test_if_newroom_doesnt_exists(self):
-       self.amity.add_person("THE","CYBORG", "STAFF", "N")
-       person_identity = [person.the_id for person in self.amity.staff]
-       person_identity = person_identity[0]
-       reallocate =self.amity.reallocate_person(person_identity, "Mombasa")
-       self.assertEqual(reallocate, "This room does not exist. (Make sure you spell check your room names)", msg="This room (name) does NOT exist")
+        self.amity.add_person("THE", "CYBORG", "STAFF", "N")
+        person_identity = [person.the_id for person in self.amity.staff]
+        person_identity = person_identity[0]
+        reallocate = self.amity.reallocate_person(person_identity, "Mombasa")
+        self.assertEqual(reallocate, "\x1b[31mThis room does not exist. (Make sure you spell check your room names)\x1b[0m",
+                         msg="This room (name) does NOT exist")
 
     def test_if_identifier_doesnt_exist(self):
-       self.amity.create_room("o", "Mombasa")
-       reallocate =self.amity.reallocate_person(99999, "Mombasa")
-       self.assertEqual(reallocate, "This person cannot be identified", msg="Non existant person is being reallocated")
+        self.amity.create_room("o", "Mombasa")
+        reallocate = self.amity.reallocate_person(99999, "Mombasa")
+        self.assertEqual(reallocate, "\x1b[31mThis person cannot be identified\x1b[0m",
+                         msg="Non existant person is being reallocated")
 
-    def test_newroom_is_not_full(self):
-       self.amity.create_room("l", "Mombasa")
-       self.amity.add_person("THE","ROCK","FELLOW", "Y")
-       self.amity.add_person("THE","MACE","FELLOW", "Y")
-       self.amity.add_person("THE","CYBORG","FELLOW", "Y")
-       self.amity.add_person("THE","UNDERTAKER","FELLOW", "Y")
-       self.amity.add_person("THE","THING","FELLOW", "Y")
-       person_identity = [person.the_id for person in self.amity.fellows if person.the_name == "THE THING"]
-       person_identity = person_identity[0]
-       reallocate =self.amity.reallocate_person(person_identity, "Mombasa")
-       self.assertEqual(reallocate, "Sorry, room is full", msg="Person is curently being allocated to a full room")
+    def test_ls_is_not_full(self):
+        self.amity.create_room("l", "Mombasa")
+        self.amity.add_person("THE", "ROCK", "FELLOW", "Y")
+        self.amity.add_person("THE", "MACE", "FELLOW", "Y")
+        self.amity.add_person("THE", "CYBORG", "FELLOW", "Y")
+        self.amity.add_person("THE", "UNDERTAKER", "FELLOW", "Y")
+        self.amity.add_person("THE", "THING", "FELLOW", "Y")
+        person_identity = [
+            person.the_id for person in self.amity.fellows if person.the_name == "THE THING"]
+        person_identity = person_identity[0]
+        reallocate = self.amity.reallocate_person(person_identity, "Mombasa")
+        self.assertEqual(reallocate, "\x1b[32mSorry, room is full\x1b[0m",
+                         msg="Person is curently being allocated to a full room")
 
+    def test_if_ls_reallocation_successful(self):
+        self.amity.create_room("l", "Mombasa")
+        self.amity.add_person("THE", "ROCK", "FELLOW", "Y")
+        self.amity.create_room("l", "Mogadishu")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        reallocate = self.amity.reallocate_person(person_identity, "Mogadishu")
+        self.assertEqual(reallocate, "\x1b[36mTHE ROCK has been reallocated to MOGADISHU\x1b[0m",
+                         msg="Person could NOT be added to room")
 
-    def test_if_reallocation_successful(self):
-       self.amity.create_room("l", "Mombasa")
-       self.amity.add_person("THE","ROCK","FELLOW", "Y")
-       self.amity.create_room("l", "Mogadishu")
-       person_identity = [person.the_id for person in self.amity.fellows]
-       person_identity = person_identity[0]
-       reallocate =self.amity.reallocate_person(person_identity, "Mogadishu")
-       self.assertEqual(reallocate, "THE ROCK has been reallocated to MOGADISHU", msg="Person could NOT be added to room")
+    def test_if_office_reallocation_successful(self):
+        self.amity.create_room("o", "Mombasa")
+        self.amity.add_person("THE", "ROCK", "FELLOW", "Y")
+        self.amity.create_room("o", "Mogadishu")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        person_identity = person_identity[0]
+        reallocate = self.amity.reallocate_person(person_identity, "Mogadishu")
+        self.assertEqual(reallocate, "\x1b[36mTHE ROCK has been reallocated to MOGADISHU\x1b[0m",
+                         msg="Person could NOT be added to room")
 
-    def test_people_loaded(self):
-       response = self.amity.load_people()
-       print(response)
-       self.assertEqual(response, "File loaded successfully", msg="File NOT created successfully")
+    def test_staff_allocation_to_ls(self):
+        self.amity.add_person("THE", "ROCK", "Staff")
+        self.amity.create_room("l", "Haba")
+        person_identity = [person.the_id for person in self.amity.staff]
+        person_identity = person_identity[0]
+        response = self.amity.reallocate_person(person_identity, "haba")
+        self.assertEqual(
+            response, "\x1b[31mCannot allocate staff to a living Space\x1b[0m")
 
-    # def test_if_file_does_not_exists(self):
-    #     response = self.amity.load_people("kbdk.txt")
-    #     self.assertEqual(response, "File does not exist", msg="Non-existing file is being tried to load")
-
-    # def test_whether_input_is_txt_file(self):
-    #     response =self.amity.load_people("text.db")
-    #     self.assertEqual(response, "System can only load people from a text file", msg="System is loading other files besides text files")
-
-    # def test_if_input_file_is_not_blank(self):
-    #     response =self.amity.load_people("empty.txt")
-    #     print(response)
-    #     self.assertEqual(response, "File may be empty or in incorrect format", msg="System doesn't handle for empty files")
-
-    # def test_if_input_file_in_correct_format(self):
-    #     self.assertEqual(self.amity.load_people("incorrect.txt"), 'Inaccurate information. Double check your file')#check this
-
-
-    def test_allocated_file_created(self):
-        response = self.amity.print_allocations("allocated.txt")
-        self.assertEqual(response, "Data has been successfully saved to allocated.txt")
-        self.assertTrue(os.path.exists("allocated.txt"))
+    def test_people_loaded(self):  # test loadpeople later
+        response = self.amity.load_people()
+        self.assertEqual(response, "\x1b[36mFile loaded successfully\x1b[0m",
+                         msg="File NOT created successfully")
 
     def test_if_room_exists(self):
-        response =self.amity.print_room("Manchester")
-        self.assertEqual(response, "Room not found", msg="System printing room which is non-existant")
+        response = self.amity.print_room("Manchester")
+        self.assertEqual(response, "\x1b[31mRoom not found\x1b[0m",
+                         msg="System printing room which is non-existant")
 
     def test_room_prints_all_members(self):
-       self.amity.create_room("l", "Mombasa")
-       self.amity.add_person("THE","THING","FELLOW", "Y")
-       self.amity.add_person("THE","MACE","FELLOW", "Y")
-       self.amity.add_person("THE","ROCK","FELLOW", "Y")
-       response =self.amity.print_room("Mombasa")
-       self.assertTrue(("THE THING" and "THE MACE" and "THE ROCK") in response, msg="All members not printed successfully")
+        self.amity.create_room("l", "Mombasa")
+        self.amity.add_person("THE", "THING", "FELLOW", "Y")
+        self.amity.add_person("THE", "MACE", "FELLOW", "Y")
+        self.amity.add_person("THE", "ROCK", "FELLOW", "Y")
+        response = self.amity.print_room("Mombasa")
+        self.assertTrue(("THE THING" and "THE MACE" and "THE ROCK")
+                        in response, msg="All members not printed successfully")
 
+    def test_print_empty_list(self):
+        self.amity.create_room("o", "Juja")
+        response = self.amity.print_room("juja")
+        self.assertEqual(response, "\x1b[34mOcccupants in JUJA:\nEmpty\x1b[0m")
+
+    def test_prints_allocations_on_screen(self):
+        response = self.amity.print_allocations()
+        self.assertEqual(
+            response, "\x1b[34mNO offices added yet!\nNO living spaces added yet!\x1b[0m")
+
+    def test_prints_allocations_to_file(self):
+        response = self.amity.print_allocations("testfile")
+        self.assertEqual(
+            response, "\x1b[36mData has been successfully saved to testfile.txt\x1b[0m")
+
+    def test_prints_empty(self):
+        response = self.amity.print_unallocated()
+        self.assertEqual(response, "\x1b[33mThis list is empty\x1b[0m")
+
+    def test_prints_unallocated_to_screen(self):
+        self.amity.add_person("The", "Man", "Fellow", "Y")
+        self.amity.add_person("The", "guy", "Fellow", "N")
+        self.amity.add_person("The", "dude", "Staff")
+        person_identity = [person.the_id for person in self.amity.fellows]
+        staff_identity = [person.the_id for person in self.amity.staff]
+        response = self.amity.print_unallocated()
+        expected = "\x1b[34mThe following people are unallocated: \n%s:- THE MAN (Fellow) ---> Not allocated a Office and Living Space\n%s:- THE GUY (Fellow) ---> Not allocated a Office and Living Space\n%s:- THE DUDE (Staff) ---> Not allocated a Office\n\x1b[0m" % (
+            person_identity[0], person_identity[1], staff_identity[0])
+        self.assertEqual(response, expected)
+
+    def test_prints_unallocated_to_file(self):
+        self.amity.add_person("The", "Man", "Fellow", "Y")
+        self.amity.add_person("The", "guy", "Fellow", "N")
+        self.amity.add_person("The", "dude", "Staff")
+        response = self.amity.print_unallocated("testingme")
+        self.assertEqual(
+            response, "\x1b[36mData has been successfully saved to testingme.txt\x1b[0m")
 
     def test_dbfile_created(self):
         self.amity.save_state("file.db")
-        self.assertTrue(os.path.exists("file.db")) #change filename
+        self.assertTrue(os.path.exists("file.db"))
 
+    def test_save_state(self):
+        response = self.amity.save_state("mydb")
+        self.assertEqual(
+            response, "\x1b[36mData saved to mydb.db successfully!\x1b[0m")
+
+    def test_load_state_for_nonexisting_file(self):
+        response = self.amity.load_state("lolik")
+        self.assertEqual(
+            response, "\x1b[31mThe database does not exist!\x1b[0m")
+
+    def test_load_state_successful(self):
+        response = self.amity.load_state("thisfile")
+        self.assertEqual(response, "\x1b[36mData loaded successfully!\x1b[0m")
 
 
 if __name__ == '__main__':
