@@ -9,6 +9,7 @@ class Person(object):
         self.the_name = the_name
 
 class Fellow(Person):
+    """ class Fellow inherits from Person"""
 
     def __init__(self, the_id, the_name):
         super(Fellow, self).__init__(the_id, the_name)
@@ -19,6 +20,7 @@ class Fellow(Person):
         return "{}".format(self.the_name)
 
 class Staff(Person):
+    """ class Staff inherits from Person"""
     def __init__(self, the_id, the_name):
         super(Staff, self).__init__(the_id, the_name)
         self.allocated = None
