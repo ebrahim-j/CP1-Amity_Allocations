@@ -49,15 +49,21 @@ class Amity(object):
         if identifier in [person.the_id for person in all_people]:
             return colored("Duplicate ID generated. Please try again", "red")
         if role.lower() == "staff":
-            wants_accommodation = "N"
+            if wants_accommodation is None:
+                wants_accommodation = "N"
+            if wants_accommodation.upper() in ("Y", "YES"):
+                output = colored(". Staff cannot be allocated a living space", "yellow")
+            elif wants_accommodation.upper() in ("N", "NO"):
+                output = ""
+
             person = Staff(identifier, name)
             self.staff.append(person)
             office_selected = Amity.randomly_allocate_office(self)
             if office_selected == False:
-                return colored("Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green")
+                return colored("(%s) %s has been added and will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green") + output
             office_selected.current_occupants.append(person.the_name)
             person.allocated = office_selected.room_name
-            return colored("(%s): %s has been allocated to the office %s" % (person.the_id, person.the_name, office_selected.room_name), "cyan")
+            return colored("(%s): %s has been allocated to the office %s" % (person.the_id, person.the_name, office_selected.room_name), "cyan") + output
         elif role.lower() == "fellow":
             if wants_accommodation is None:
                 wants_accommodation = "N"
@@ -66,7 +72,7 @@ class Amity(object):
                 self.fellows.append(person)
                 office_selected = Amity.randomly_allocate_office(self)
                 if office_selected == False:
-                    return colored("Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green")
+                    return colored("(%s) %s has been added and will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green")
                 office_selected.current_occupants.append(person.the_name)
                 person.allocated = office_selected.room_name
                 return colored("(%s): %s has been allocated to %s" % (
@@ -77,17 +83,17 @@ class Amity(object):
                 office_selected = Amity.randomly_allocate_office(self)
                 ls_selected = Amity.randomly_allocate_ls(self)
                 if office_selected == False and ls_selected == False:
-                    return colored("Welcome (%s) %s, You will be allocated an office and a Living Space as soon as we have space" % (
+                    return colored("(%s) %s has been added and will be allocated an office and a Living Space as soon as we have space" % (
                         person.the_id, person.the_name), "green")
                 elif office_selected == False and ls_selected != False:
                     ls_selected.current_occupants.append(person.the_name)
                     person.accommodated = ls_selected.room_name
-                    return colored("Welcome (%s) %s, You will live in %s and will be allocated an office as soon as we have space" % (
+                    return colored("(%s) %s will live in %s and will be allocated an office as soon as we have space" % (
                         person.the_id, person.the_name, ls_selected.room_name), "yellow")
                 elif ls_selected == False and office_selected != False:
                     office_selected.current_occupants.append(person.the_name)
                     person.allocated = office_selected.room_name
-                    return colored("Welcome (%s) %s, You have been allocated to %s. You will be assigned a living space as soon as we have room" % (
+                    return colored("(%s) %s has been allocated to %s. You will be assigned a living space as soon as we have room" % (
                         person.the_id, person.the_name, office_selected.room_name), "yellow")
                 else:
                     office_selected.current_occupants.append(person.the_name)
@@ -277,9 +283,9 @@ class Amity(object):
         output = "The following people are unallocated: \n"
         for person in unallocated:
             if len(person) == 5:
-                output += "%s:- %s (%s) ---> Not allocated a %s and %s\n" % (person[0], person[1], person[2], person[3], person[4])
+                output += "%s:- %s (%s) ---> Not allocated with: %s and %s\n" % (person[0], person[1], person[2], person[3], person[4])
             else:
-                output += "%s:- %s (%s) ---> Not allocated a %s\n" % (person[0], person[1], person[2], person[3])
+                output += "%s:- %s (%s) ---> Not allocated with: %s\n" % (person[0], person[1], person[2], person[3])
 
         if filename is None:
             return colored(output, "blue")
@@ -373,9 +379,11 @@ class Amity(object):
         Base.metadata.bind = engine
         DBSession = sessionmaker(bind=engine)
         session = DBSession()
-
-        all_rooms = session.query(RoomModel).all()
-        everyone = session.query(PersonModel).all()
+        try:
+            all_rooms = session.query(RoomModel).all()
+            everyone = session.query(PersonModel).all()
+        except:
+            return colored("This file is in wrong format", "red")
 
         for room in all_rooms:
             if room.room_type == "OFFICE":
@@ -405,3 +413,4 @@ class Amity(object):
                 fellow.accommodated = str(person.living_space)
 
         return colored("Data loaded successfully!", "cyan")
+       
