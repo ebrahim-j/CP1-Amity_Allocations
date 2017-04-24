@@ -6,7 +6,7 @@ Usage:
     amity create_room <room_type> <room_name>...
     amity add_person <first_name> <second_name> <FELLOW|STAFF> [wants_accommodation]
     amity reallocate_person <person_identifier> <new_room_name>
-    amity load_people[-o]
+    amity load_people [-o]
     amity get_everyone
     amity print_allocations [-o]
     amity print_unallocated [-o]
@@ -74,7 +74,7 @@ class MyInteractive (cmd.Cmd):
 
     launch()
 
-    prompt = colored('(Amity)', "white", "on_grey") + ' 🏠)'
+    prompt = colored('(Amity)', "white", "on_grey") + ' 🏠) '
     
     file = None
 
@@ -123,14 +123,14 @@ class MyInteractive (cmd.Cmd):
 
     @docopt_cmd
     def do_load_people(self, arg):
-        """ Usage: load_people [--o]"""
+        """ Usage: load_people [<--o>]"""
 
         if arg['<--o>']:
             filename = arg['<--o>']
         else:
             filename = None
 
-        print(self.amity.load_people())
+        print(self.amity.load_people(filename))
 
     @docopt_cmd
     def do_print_allocations(self, arg):
