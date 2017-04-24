@@ -22,6 +22,8 @@ import sys
 import cmd
 from docopt import docopt, DocoptExit
 from amity import Amity
+from pyfiglet import figlet_format
+from termcolor import cprint
 
 
 def docopt_cmd(func):
@@ -54,10 +56,18 @@ def docopt_cmd(func):
     fn.__dict__.update(func.__dict__)
     return fn
 
+def launch():
+	cprint(figlet_format('AMITY', font='doom'), 'cyan', 
+		attrs=['blink'])
+	print("Welcome to the AMITY." + 
+		"Here is a list of commands for your use " + 
+		"Type 'help' anytime to access available commands")
+	cprint(__doc__, 'blue')
 
 class MyInteractive (cmd.Cmd):
-    intro = 'Welcome to my interactive program!' \
-        + ' (type help for a list of commands.)'
+
+    launch()
+
     prompt = '(Amity...) '
     file = None
 
@@ -65,7 +75,7 @@ class MyInteractive (cmd.Cmd):
 
     @docopt_cmd
     def do_create_room(self, arg):
-        '''"Instantiates a living space or office based on prefix
+        '''Instantiates a living space or office based on prefix
             Usage: create_room <room_type> <room_name>...'''
 
         name = arg['<room_name>']
