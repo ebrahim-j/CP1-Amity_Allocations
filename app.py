@@ -1,10 +1,12 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 AMITY.
 Usage:
     amity create_room <room_type> <room_name>...
     amity add_person <first_name> <second_name> <FELLOW|STAFF> [wants_accommodation]
     amity reallocate_person <person_identifier> <new_room_name>
-    amity load_people
+    amity load_people[-o]
     amity get_everyone
     amity print_allocations [-o]
     amity print_unallocated [-o]
@@ -20,6 +22,7 @@ Options:
 
 import sys
 import cmd
+import time
 from docopt import docopt, DocoptExit
 from amity import Amity
 from pyfiglet import figlet_format
@@ -39,7 +42,7 @@ def docopt_cmd(func):
             # The DocoptExit is thrown when the args do not match.
             # We print a message to the user and the usage block.
 
-            print('Invalid Command!')
+            cprint('Invalid Command!', "red")
             print(e)
             return
 
@@ -57,18 +60,22 @@ def docopt_cmd(func):
     return fn
 
 def launch():
-	cprint(figlet_format('AMITY', font='doom'), 'cyan', 
+    time.sleep(1)
+    cprint(figlet_format('AMITY', font='doom'), 'cyan', 
 		attrs=['blink'])
-	print("Welcome to the AMITY." + 
+    time.sleep(1)   
+    cprint("Welcome to the AMITY." + 
 		"Here is a list of commands for your use " + 
-		"Type 'help' anytime to access available commands")
-	cprint(__doc__, 'blue')
+		"Type 'help' anytime to access available commands", "white")
+        
+    cprint(__doc__, 'blue')
 
 class MyInteractive (cmd.Cmd):
 
     launch()
 
-    prompt = colored('(Amity...) ', "white", "on_grey")
+    prompt = colored('(Amity)', "white", "on_grey") + ' 🏠)'
+    
     file = None
 
     amity = Amity()
@@ -116,7 +123,12 @@ class MyInteractive (cmd.Cmd):
 
     @docopt_cmd
     def do_load_people(self, arg):
-        """ Usage: load_people """
+        """ Usage: load_people [--o]"""
+
+        if arg['<--o>']:
+            filename = arg['<--o>']
+        else:
+            filename = None
 
         print(self.amity.load_people())
 
