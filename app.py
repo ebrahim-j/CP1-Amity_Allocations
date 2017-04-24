@@ -22,6 +22,8 @@ import sys
 import cmd
 from docopt import docopt, DocoptExit
 from amity import Amity
+from pyfiglet import figlet_format
+from termcolor import cprint
 
 
 def docopt_cmd(func):

@@ -6,8 +6,7 @@ from random import randint, choice
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.dbModels import RoomModel, PersonModel, Base
-
-# correct for .lower() or likewise entries
+from termcolor import colored
 
 
 class Amity(object):
@@ -20,6 +19,7 @@ class Amity(object):
         self.l_spaces = []
 
     def randomly_allocate_office(self):
+        """ Randomly allocates an office to a fellow/staff """
         rooms_with_space = []
         for room in self.offices:
             if room.room_has_space():
@@ -30,6 +30,7 @@ class Amity(object):
         return selected_room
 
     def randomly_allocate_ls(self):
+        """Randomly allocates a living space to a fellow"""
         rooms_with_space = []
         for room in self.l_spaces:
             if room.room_has_space() == True:
@@ -40,25 +41,23 @@ class Amity(object):
         return selected_room
 
     def add_person(self, firstname, lastname, role, wants_accommodation='N'):
-        # if not name.isalpha() or not role.isalpha() or not wants_accommodation.isalpha():
-        # return "Please ensure you don't have digits in name, role or
-        # accommodation"
+        """ Adds a staff/fellow to Amity and randomly allocates and office and/or living space"""
         all_people = self.fellows + self.staff
-        identifier = randint(1, 9999)  # query the db?
+        identifier = randint(1, 9999)
         name = firstname + " " + lastname
         name = name.upper()
         if identifier in [person.the_id for person in all_people]:
-            return "Duplicate ID generated. Please try again"
+            return colored("Duplicate ID generated. Please try again", "red")
         if role.lower() == "staff":
             wants_accommodation = "N"
             person = Staff(identifier, name)
             self.staff.append(person)
             office_selected = Amity.randomly_allocate_office(self)
             if office_selected == False:
-                return "Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name)
+                return colored("Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green")
             office_selected.current_occupants.append(person.the_name)
             person.allocated = office_selected.room_name
-            return "(%s): %s has been allocated to the office %s" % (person.the_id, person.the_name, office_selected.room_name)
+            return colored("(%s): %s has been allocated to the office %s" % (person.the_id, person.the_name, office_selected.room_name), "cyan")
         elif role.lower() == "fellow":
             if wants_accommodation is None:
                 wants_accommodation = "N"
@@ -67,46 +66,46 @@ class Amity(object):
                 self.fellows.append(person)
                 office_selected = Amity.randomly_allocate_office(self)
                 if office_selected == False:
-                    return "Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name)
+                    return colored("Welcome (%s) %s, You will be allocated an office as soon as we have space" % (person.the_id, person.the_name), "green")
                 office_selected.current_occupants.append(person.the_name)
                 person.allocated = office_selected.room_name
-                return "(%s): %s has been allocated to %s" % (
-                    person.the_id, person.the_name, office_selected.room_name)
+                return colored("(%s): %s has been allocated to %s" % (
+                    person.the_id, person.the_name, office_selected.room_name), "cyan")
             elif wants_accommodation.upper() == "Y" or wants_accommodation.upper() == "YES":
                 person = Fellow(identifier, name)
                 self.fellows.append(person)
                 office_selected = Amity.randomly_allocate_office(self)
                 ls_selected = Amity.randomly_allocate_ls(self)
                 if office_selected == False and ls_selected == False:
-                    return "Welcome (%s) %s, You will be allocated an office and a Living Space as soon as we have space" % (
-                        person.the_id, person.the_name)
+                    return colored("Welcome (%s) %s, You will be allocated an office and a Living Space as soon as we have space" % (
+                        person.the_id, person.the_name), "green")
                 elif office_selected == False and ls_selected != False:
                     ls_selected.current_occupants.append(person.the_name)
                     person.accommodated = ls_selected.room_name
-                    return "Welcome (%s) %s, You will live in %s and will be allocated an office as soon as we have space" % (
-                        person.the_id, person.the_name, ls_selected.room_name)
+                    return colored("Welcome (%s) %s, You will live in %s and will be allocated an office as soon as we have space" % (
+                        person.the_id, person.the_name, ls_selected.room_name), "yellow")
                 elif ls_selected == False and office_selected != False:
                     office_selected.current_occupants.append(person.the_name)
                     person.allocated = office_selected.room_name
-                    return "Welcome (%s) %s, You have been allocated to %s. You will be assigned a living space as soon as we have room" % (
-                        person.the_id, person.the_name, office_selected.room_name)
+                    return colored("Welcome (%s) %s, You have been allocated to %s. You will be assigned a living space as soon as we have room" % (
+                        person.the_id, person.the_name, office_selected.room_name), "yellow")
                 else:
                     office_selected.current_occupants.append(person.the_name)
                     person.allocated = office_selected.room_name
                     ls_selected.current_occupants.append(person.the_name)
                     person.accommodated = ls_selected.room_name
-                    return "(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name.upper(), office_selected.room_name.upper(), ls_selected.room_name.upper())
+                    return colored("(%s): %s has been appointed to %s and will live in %s" % (person.the_id, person.the_name.upper(), office_selected.room_name.upper(), ls_selected.room_name.upper()), "cyan")
             else:
-                return "I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) "
+                return colored("I don't know whether you want accomodation or not. (Reply with Y or Yes, N or No) ", "red")
         else:
-            return "Person can either be Staff or Fellow"
+            return colored("Person can either be Staff or Fellow", "red")
 
     def get_everyone(self):
         """ Prints all the people in Amity on the screen"""
         everyone = self.fellows + self.staff
 
         if len(everyone) == 0:
-            return "Nobody in Amity! :'("
+            return colored("Nobody in Amity! :'(", "red")
         response = ""
         for guy in everyone:
             if isinstance(guy, Fellow):
@@ -114,19 +113,18 @@ class Amity(object):
             else:
                 typeguy = "Staff"
             response += "{} | {} | {}".format(guy.the_id, guy.the_name, typeguy) + "\n\n"
-        return response
+        return colored(response, "blue")
 
 
     def create_room(self, prefix, name):
         """instantiates a living space or office based on prefix"""
-        # check for edge cases here
         all_rooms = self.offices + self.l_spaces
         if not name.isalpha():
             return "Room cannot have digits"
         if not prefix.isalpha():
             return "Room type cannot be in digits"
         name = name.upper()
-        if prefix.lower() == "office" or prefix.lower() == "o":  # try regex
+        if prefix.lower() == "office" or prefix.lower() == "o": 
             if name.upper() in [room.room_name.upper() for room in all_rooms]:
                 return "Room name: %s already exists" % name
             room = Office(name)
@@ -141,8 +139,7 @@ class Amity(object):
             result = "New living quarters ( %s ) successfully created!" % room.room_name.upper(
             )
             return result
-        else:
-            return "This"
+
 
 
     def reallocate_person(self, person_id, new_room_name):
@@ -150,10 +147,10 @@ class Amity(object):
         employees = self.fellows + self.staff
         all_rooms = self.offices + self.l_spaces
         new_room_name = new_room_name.upper()
-        # see for someone who doesn't have a room kabisa
+
         for individual in employees:
             if individual.the_id == person_id:
-                # check for when person is alloccated to same room
+
                 if new_room_name.upper() not in [room.room_name for room in all_rooms]:
                     return "This room does not exist. (Make sure you spell check your room names)"
                 if new_room_name.upper() == individual.allocated:
@@ -171,7 +168,6 @@ class Amity(object):
                             room.current_occupants.append(
                                 individual.the_name)
                         individual.allocated = new_room_name
-                        print(individual.allocated)
                     return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
                 elif not isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
                     if new_room_name.upper() == individual.accommodated:
@@ -188,7 +184,6 @@ class Amity(object):
                                 room.current_occupants.append(
                                     individual.the_name)
                             individual.accommodated = new_room_name
-                            print(individual.accommodated)
                     return "%s has been reallocated to %s" % (individual.the_name, new_room_name)
                 elif isinstance(individual, Staff) and new_room_name.lower() in [room.room_name.lower() for room in self.l_spaces]:
                     return "Cannot allocate staff to a living Space"
@@ -324,15 +319,16 @@ class Amity(object):
         DBSession = sessionmaker(bind=engine)
         session = DBSession()
 
+        session.query(RoomModel).delete()
+        session.query(PersonModel).delete()
+
         for room in all_rooms:
             save_room = RoomModel(
                 name=room.room_name,
                 room_type=room.room_type,
             )
-            existing = session.query(RoomModel).filter(
-                RoomModel.name == room.room_name).count()
-            if not existing:
-                session.add(save_room)
+
+            session.add(save_room)
             session.commit()
 
         for person in everyone:
@@ -352,12 +348,11 @@ class Amity(object):
                     office_space=person.allocated,
                     living_space=None
                 )
-            existing = session.query(PersonModel).filter(
-                PersonModel.person_id == person.the_id).filter(PersonModel.office_space == person.allocated).filter(PersonModel.living_space == person.accommodated).count()
 
-            if not existing:
-                session.add(save_person)
+            session.add(save_person)
             session.commit()
+
+        return "Data saved to %s successfully!" %database
 
 
     def load_state(self, db_name):
@@ -404,3 +399,5 @@ class Amity(object):
                 self.fellows.append(fellow)
                 fellow.allocated = str(person.office_space)
                 fellow.accommodated = str(person.living_space)
+
+        return "Data loaded successfully!"
