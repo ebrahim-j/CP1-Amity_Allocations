@@ -212,10 +212,22 @@ class TestAmity(unittest.TestCase):
         self.assertEqual(
             response, "\x1b[31mCannot allocate staff to a living Space\x1b[0m")
 
-    def test_people_loaded(self):  # test loadpeople later
+    def test_people_loaded(self):
         response = self.amity.load_people()
         self.assertEqual(response, "\x1b[36mFile loaded successfully\x1b[0m",
                          msg="File NOT created successfully")
+
+    def test_empty_file_load(self):
+        response = self.amity.load_people("empty")
+        self.assertEqual(response, "\x1b[33mFile is empty\x1b[0m")
+
+    def test_incorrect_format(self):
+        response = self.amity.load_people("incorrect")
+        self.assertEqual(response, "\x1b[31mInaccurate information. Double check your file\x1b[0m")
+
+    def test_nonexisting_file(self):
+        response = self.amity.load_people("ebhkj")
+        self.assertEqual(response, "\x1b[31mFile does not exist\x1b[0m")
 
     def test_if_room_exists(self):
         response = self.amity.print_room("Manchester")
