@@ -29,12 +29,19 @@ class TestAmity(unittest.TestCase):
         person_identity = person_identity[0]
         self.assertEqual(
             response, "\x1b[36m(%s): THE MACE has been allocated to the office DAKAR\x1b[0m" % person_identity)
+    
+    def test_if_staff_wants_acc_handled(self):
+        response = self.amity.add_person("the", "moneymaker", "staff", "y")
+        person_identity = [person.the_id for person in self.amity.staff]
+        person_identity = person_identity[0]
+        expected = "\x1b[32m(%s) THE MONEYMAKER has been added and will be allocated an office as soon as we have space\x1b[0m\x1b[33m. Staff cannot be allocated a living space\x1b[0m"%person_identity
+        self.assertEqual(response, expected)
 
     def test_if_staff_added_with_no_office(self):
         create = self.amity.add_person("THE", "CYBORG", "STAFF")
         person_identity = [person.the_id for person in self.amity.staff]
         person_identity = person_identity[0]
-        self.assertEqual(create, "\x1b[32mWelcome (%s) THE CYBORG, You will be allocated an office as soon as we have space\x1b[0m" %
+        self.assertEqual(create, "\x1b[32m(%s) THE CYBORG has been added and will be allocated an office as soon as we have space\x1b[0m" %
                          person_identity, msg="Staff CANNOT be added successfully")
 
     def test_fellow_doesnt_get_office(self):
@@ -42,7 +49,7 @@ class TestAmity(unittest.TestCase):
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
         self.assertEqual(
-            response, "\x1b[32mWelcome (%s) THE LEGEND, You will be allocated an office as soon as we have space\x1b[0m" % person_identity)
+            response, "\x1b[32m(%s) THE LEGEND has been added and will be allocated an office as soon as we have space\x1b[0m" % person_identity)
 
     def test_fellow_gets_office(self):
         self.amity.create_room("o", "kili")
@@ -57,7 +64,7 @@ class TestAmity(unittest.TestCase):
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
         self.assertEqual(
-            response, "\x1b[32mWelcome (%s) THE LEGEND, You will be allocated an office and a Living Space as soon as we have space\x1b[0m" % person_identity)
+            response, "\x1b[32m(%s) THE LEGEND has been added and will be allocated an office and a Living Space as soon as we have space\x1b[0m" % person_identity)
 
     def test_fellow_gets_only_office(self):
         self.amity.create_room("o", "kili")
@@ -65,7 +72,7 @@ class TestAmity(unittest.TestCase):
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
         self.assertEqual(
-            response, "\x1b[33mWelcome (%s) THE LEGEND, You have been allocated to KILI. You will be assigned a living space as soon as we have room\x1b[0m" % person_identity)
+            response, "\x1b[33m(%s) THE LEGEND has been allocated to KILI. You will be assigned a living space as soon as we have room\x1b[0m" % person_identity)
 
     def test_fellow_gets_only_ls(self):
         self.amity.create_room("l", "kili")
@@ -73,7 +80,7 @@ class TestAmity(unittest.TestCase):
         person_identity = [person.the_id for person in self.amity.fellows]
         person_identity = person_identity[0]
         self.assertEqual(
-            response, "\x1b[33mWelcome (%s) THE LEGEND, You will live in KILI and will be allocated an office as soon as we have space\x1b[0m" % person_identity)
+            response, "\x1b[33m(%s) THE LEGEND will live in KILI and will be allocated an office as soon as we have space\x1b[0m" % person_identity)
 
     def test_bad_input(self):
         response = self.amity.add_person("ief", "sd", "stuff")
@@ -269,7 +276,7 @@ class TestAmity(unittest.TestCase):
         person_identity = [person.the_id for person in self.amity.fellows]
         staff_identity = [person.the_id for person in self.amity.staff]
         response = self.amity.print_unallocated()
-        expected = "\x1b[34mThe following people are unallocated: \n%s:- THE MAN (Fellow) ---> Not allocated a Office and Living Space\n%s:- THE GUY (Fellow) ---> Not allocated a Office and Living Space\n%s:- THE DUDE (Staff) ---> Not allocated a Office\n\x1b[0m" % (
+        expected = "\x1b[34mThe following people are unallocated: \n%s:- THE MAN (Fellow) ---> Not allocated with: Office and Living Space\n%s:- THE GUY (Fellow) ---> Not allocated with: Office and Living Space\n%s:- THE DUDE (Staff) ---> Not allocated with: Office\n\x1b[0m" % (
             person_identity[0], person_identity[1], staff_identity[0])
         self.assertEqual(response, expected)
 
@@ -286,17 +293,21 @@ class TestAmity(unittest.TestCase):
         self.assertTrue(os.path.exists("file.db"))
 
     def test_save_state(self):
-        response = self.amity.save_state("mydb")
+        response = self.amity.save_state("my_db")
         self.assertEqual(
-            response, "\x1b[36mData saved to mydb.db successfully!\x1b[0m")
+            response, "\x1b[36mData saved to my_db.db successfully!\x1b[0m")
 
     def test_load_state_for_nonexisting_file(self):
         response = self.amity.load_state("lolik")
         self.assertEqual(
             response, "\x1b[31mThe database does not exist!\x1b[0m")
 
+    def test_wrong_format_db(self):
+        response = self.amity.load_state("mydb")
+        self.assertEqual(response, "\x1b[31mThis file is in wrong format\x1b[0m")
+
     def test_load_state_successful(self):
-        response = self.amity.load_state("thisfile")
+        response = self.amity.load_state("amity")
         self.assertEqual(response, "\x1b[36mData loaded successfully!\x1b[0m")
 
 
