@@ -23,7 +23,7 @@ import cmd
 from docopt import docopt, DocoptExit
 from amity import Amity
 from pyfiglet import figlet_format
-from termcolor import cprint
+from termcolor import cprint, colored
 
 
 def docopt_cmd(func):
@@ -68,7 +68,7 @@ class MyInteractive (cmd.Cmd):
 
     launch()
 
-    prompt = '(Amity...) '
+    prompt = colored('(Amity...) ', "white", "on_grey")
     file = None
 
     amity = Amity()
@@ -175,7 +175,7 @@ class MyInteractive (cmd.Cmd):
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
 
-        print('Good Bye!')
+        cprint('Good Bye!', "magenta", "on_white")
         exit()
 
 opt = docopt(__doc__, sys.argv[1:])
