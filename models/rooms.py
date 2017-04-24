@@ -6,7 +6,6 @@ class Room(object):
         self.room_name = room_name
 
 
-    
 
 class Office(Room):
     """ class Office inherits from class Room """
