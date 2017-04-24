@@ -191,9 +191,13 @@ class Amity(object):
         return colored("This person cannot be identified", "red")
 
 
-    def load_people(self):
+    def load_people(self, filename=None):
         """ Adds people to rooms from a txt file """
-        filename = "text.txt"
+        if filename == None:
+            filename = "text.txt"
+        else:
+            if filename[-4:] != ".txt":
+                filename += ".txt"
 
         scriptpath = os.path.dirname(__file__)
         file_path = os.path.join(scriptpath, filename)
