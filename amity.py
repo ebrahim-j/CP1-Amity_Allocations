@@ -405,12 +405,12 @@ class Amity(object):
             if person.role == "STAFF":
                 staff = Staff(person.person_id, person.name)
                 self.staff.append(staff)
-                staff.allocated = str(person.office_space)
+                staff.allocated = person.office_space
             else:
                 fellow = Fellow(person.person_id, person.name)
                 self.fellows.append(fellow)
-                fellow.allocated = str(person.office_space)
-                fellow.accommodated = str(person.living_space)
+                fellow.allocated = person.office_space
+                fellow.accommodated = person.living_space
 
         return colored("Data loaded successfully!", "cyan")
        
