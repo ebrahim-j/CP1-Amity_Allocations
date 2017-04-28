@@ -307,7 +307,7 @@ class TestAmity(unittest.TestCase):
 
     def test_load_state_successful(self):
         response = self.amity.load_state("amity")
-        self.assertEqual(response, "\x1b[36mData loaded successfully!\x1b[0m")
+        self.assertEqual(response, "\x1b[36mData loaded successfully!\n\x1b[0m")
 
     def test_for_nonexistant_room_delete(self):
         response = self.amity.remove_room("lagos")
