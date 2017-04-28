@@ -5,8 +5,7 @@ This model's a room allocation system for one of Andela’s facilities called Am
 **CP1-Amity_Allocations** is a CLI app that handles room allocation for Fellow and Staff at one of Andela's facilities Amity. **Staff** can only be allocated office space while **Fellows** are allocated office space and living space if they choose so.
 
 
-* Link to demo video: (https://asciinema.org/a/0g7ynj7d55g36z3bm390vn6k0)
-
+* Link to demo video: [![asciicast](https://asciinema.org/a/0g7ynj7d55g36z3bm390vn6k0.png)](https://asciinema.org/a/0g7ynj7d55g36z3bm390vn6k0)
 
 ## Installation and setup
 Clone the repo into a folder of your choice on your 'terminal'
