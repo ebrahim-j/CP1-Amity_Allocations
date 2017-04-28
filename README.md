@@ -63,6 +63,10 @@ Interact with the program by running the following commands
 
 * ```load_state <database_name>``` loads data from an exisitng SQL database
 
+*```remove_room <room_name>``` removes the specified room from amity
+
+*```remove_person <identifier>``` removes a person from amity based on the provided ID
+
 ## Testing
 * Run ```nosetests ```
 
