@@ -2,7 +2,7 @@
 import os
 import unittest
 from amity import Amity
-from models.person import Person, Staff, Fellow
+from models.person import Person, Fellow
 from models.rooms import Room, Office, LivingSpace
 
 
@@ -10,8 +10,7 @@ class TestAmity(unittest.TestCase):
 
     def setUp(self):
         self.amity = Amity()
-    # test_if_can_add_more than one room
-    # test_if_duplicate_entries_not_added
+
 
     def test_if_fellow_added(self):
         room = self.amity.create_room("o", "oculus")
@@ -29,7 +28,7 @@ class TestAmity(unittest.TestCase):
         person_identity = person_identity[0]
         self.assertEqual(
             response, "\x1b[36m(%s): THE MACE has been allocated to the office DAKAR\x1b[0m" % person_identity)
-    
+
     def test_if_staff_wants_acc_handled(self):
         response = self.amity.add_person("the", "moneymaker", "staff", "y")
         person_identity = [person.the_id for person in self.amity.staff]
@@ -310,6 +309,29 @@ class TestAmity(unittest.TestCase):
         response = self.amity.load_state("amity")
         self.assertEqual(response, "\x1b[36mData loaded successfully!\x1b[0m")
 
+    def test_for_nonexistant_room_delete(self):
+        response = self.amity.remove_room("lagos")
+        self.assertEqual(response, "\x1b[31mRoom: LAGOS not in Amity\x1b[0m")
+
+    def test_room_deleted_successfully(self):
+        self.amity.create_room("o", "Tanga")
+        response = self.amity.remove_room("tanga")
+        self.assertEqual(response, "\x1b[35mRoom: TANGA has been deleted from Amity!\x1b[0m")
+
+    def test_string_input(self):
+        self.amity.add_person("Jeff", "Kungu", "Staff")
+        response = self.amity.remove_person("Jeff Kungu")
+        self.assertEqual(response, "\x1b[33mUse Id's for identifying a person, NOT name\x1b[0m")
+
+    def test_removes_person(self):
+        self.amity.add_person("Eugene", "Omar", "Staff")
+        person_identity = [person.the_id for person in self.amity.staff][0]
+        response = self.amity.remove_person(person_identity)
+        self.assertEqual(response, "\x1b[35mEUGENE OMAR has been successfully deleted from Amity.\x1b[0m")
+
+    def test_wrong_id_remove(self):
+        response = self.amity.remove_person(12345)
+        self.assertEqual(response, "\x1b[31mThis person does not exist\x1b[0m")
 
 if __name__ == '__main__':
     unittest.main()
