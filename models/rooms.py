@@ -2,10 +2,8 @@
 class Room(object):
     """ class Room """
 
-    def __init__(self, room_name): 
+    def __init__(self, room_name):
         self.room_name = room_name
-
-
 
 class Office(Room):
     """ class Office inherits from class Room """
@@ -19,12 +17,11 @@ class Office(Room):
         return "{}".format(self.room_name)
 
     def room_has_space(self):
+        """ Checks a room to see whether it has space or not"""
         if len(self.current_occupants) < self.max_capacity:
             return True
         else:
             return False
-
-
 
 class LivingSpace(Room):
     """ class LivingSpace inherits from class Room """
@@ -38,8 +35,8 @@ class LivingSpace(Room):
     def __str__(self):
         return "{}".format(self.room_name)
 
-
     def room_has_space(self):
+        """ Checks a room to see whether it has space or not"""
         if len(self.current_occupants) < self.max_capacity:
             return True
         else:
