@@ -11,7 +11,7 @@ This model's a room allocation system for one of Andela’s facilities called Am
 ## Installation and setup
 Clone the repo into a folder of your choice on your 'terminal'
 ```
-git clone https://github.com/
+git clone https://github.com/ebrahim-j/CP1-Amity_Allocations/tree/develop
 ```
 Create a virtual environment.
 ```
