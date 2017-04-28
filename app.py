@@ -13,6 +13,8 @@ Usage:
     amity print_room <room_name>
     amity save_state [--db]
     amity load_state <sqlite_database>
+    amity remove_room <room_name>
+    amity remove_person <person_identifier>
     amity (-i | --interactive)
     amity (-h | --help | --version)
 Options:
@@ -24,9 +26,10 @@ import sys
 import cmd
 import time
 from docopt import docopt, DocoptExit
-from amity import Amity
 from pyfiglet import figlet_format
 from termcolor import cprint, colored
+from amity import Amity
+
 
 
 def docopt_cmd(func):
@@ -43,7 +46,7 @@ def docopt_cmd(func):
             # We print a message to the user and the usage block.
 
             cprint('Invalid Command!', "red")
-            print(e)
+            cprint(e, "red")
             return
 
         except SystemExit:
@@ -60,22 +63,24 @@ def docopt_cmd(func):
     return fn
 
 def launch():
+    """ Launches the Amity fotu"""
     time.sleep(1)
-    cprint(figlet_format('AMITY', font='doom'), 'cyan', 
-		attrs=['blink'])
-    time.sleep(1)   
-    cprint("Welcome to the AMITY." + 
-		"Here is a list of commands for your use " + 
-		"Type 'help' anytime to access available commands", "white")
-        
+    cprint(figlet_format('AMITY', font='doom'), 'cyan',
+           attrs=['blink'])
+    time.sleep(1)
+    cprint("Welcome to the AMITY." +
+		         "Here is a list of commands for your use " +
+		         "Type 'help' anytime to access available commands", "white")
+
     cprint(__doc__, 'blue')
 
-class MyInteractive (cmd.Cmd):
+class MyInteractive(cmd.Cmd):
+    """ This triggers the interactive program"""
 
     launch()
 
     prompt = colored('(Amity)', "white", "on_grey") + ' 🏠) '
-    
+
     file = None
 
     amity = Amity()
@@ -107,12 +112,12 @@ class MyInteractive (cmd.Cmd):
 
     @docopt_cmd
     def do_reallocate_person(self, arg):
-		"""Usage: reallocate_person <person_identifier> <new_room_name>"""
+        """Usage: reallocate_person <person_identifier> <new_room_name>"""
 
-		identifier = arg["<person_identifier>"]
-		new_room = arg["<new_room_name>"]
+        identifier = arg["<person_identifier>"]
+        new_room = arg["<new_room_name>"]
 
-		print(self.amity.reallocate_person(int(identifier), new_room))
+        print(self.amity.reallocate_person(int(identifier), new_room))
 
     @docopt_cmd
     def do_get_everyone(self, arg):
@@ -183,6 +188,22 @@ class MyInteractive (cmd.Cmd):
         dbname = arg['<sqlite_database>']
 
         print(self.amity.load_state(dbname))
+
+    @docopt_cmd
+    def do_remove_room(self, arg):
+        """ Usage: remove_room <room_name> """
+
+        room_name = arg['<room_name>']
+
+        print(self.amity.remove_room(room_name))
+
+    @docopt_cmd
+    def do_remove_person(self, arg):
+        """ Usage: remove_person <person_identifier> """
+
+        person_identifier = arg['<person_identifier>']
+
+        print(self.amity.remove_person(person_identifier))
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
