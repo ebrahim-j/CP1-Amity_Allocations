@@ -8,6 +8,10 @@ __pycache__/
 
 .coveragerc
 
+*.pyc
+*.db
+.cache
+
 # Distribution / packaging
 .Python
 env/
@@ -29,6 +33,7 @@ wheels/
 
 .vscode/
 amity2.py
+script.py
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
